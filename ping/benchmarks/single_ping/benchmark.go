@@ -17,7 +17,7 @@ type Benchmark struct {
 
 // Run runs the benchmark.
 func (b *Benchmark) Run() {
-	engine := b.simulation.Engine()
+	engine := b.simulation.GetEngine()
 	sender := b.simulation.GetComponentByName(b.senderName)
 	receiver := b.simulation.GetComponentByName(b.receiverName)
 
@@ -26,6 +26,6 @@ func (b *Benchmark) Run() {
 
 	engine.Run()
 
-	fmt.Printf("Ping from %s to %s took %.10f seconds\n",
-		b.senderName, b.receiverName, engine.CurrentTime())
+	fmt.Printf("End time: %.10f seconds\n",
+		engine.CurrentTime())
 }

@@ -42,7 +42,6 @@ func (c *Comp) handlePingEvent(e *PingEvent) error {
 
 	pingReq.Meta().Src = c.port
 	pingReq.Meta().Dst = e.dst.GetPortByName("PingPort")
-	pingReq.Meta().SendTime = e.time
 
 	sendError := c.port.Send(pingReq)
 	if sendError != nil {
@@ -53,30 +52,36 @@ func (c *Comp) handlePingEvent(e *PingEvent) error {
 }
 
 // Tick updates the component state
-func (c *Comp) Tick(now sim.VTimeInSec) (madeProgress bool) {
-	madeProgress = c.respond(now) || madeProgress
-	madeProgress = c.update(now) || madeProgress
-	madeProgress = c.receive(now) || madeProgress
+func (c *Comp) Tick() (madeProgress bool) {
+	madeProgress = c.respond() || madeProgress
+	madeProgress = c.update() || madeProgress
+	madeProgress = c.receive() || madeProgress
 
 	return madeProgress
 }
 
-func (c *Comp) receive(now sim.VTimeInSec) bool {
-	req := c.port.Retrieve(now)
-	if req == nil {
+func (c *Comp) receive() bool {
+	msg := c.port.RetrieveIncoming()
+	if msg == nil {
 		return false
 	}
 
-	pingReq := req.(*PingReq)
-	c.processingMsgs = append(c.processingMsgs, &processingMsg{
-		pingReq:   pingReq,
-		cycleLeft: c.latency,
-	})
+	switch msg := msg.(type) {
+	case *PingReq:
+		c.processingMsgs = append(c.processingMsgs, &processingMsg{
+			pingReq:   msg,
+			cycleLeft: c.latency,
+		})
 
-	return false
+		return true
+	case *sim.GeneralRsp:
+		return true
+	default:
+		panic("Unknown message type")
+	}
 }
 
-func (c *Comp) update(now sim.VTimeInSec) bool {
+func (c *Comp) update() bool {
 	madeProgress := false
 
 	for i := 0; i < len(c.processingMsgs); i++ {
@@ -92,7 +97,7 @@ func (c *Comp) update(now sim.VTimeInSec) bool {
 	return madeProgress
 }
 
-func (c *Comp) respond(now sim.VTimeInSec) bool {
+func (c *Comp) respond() bool {
 	madeProgress := false
 
 	for i := 0; i < len(c.processingMsgs); i++ {
@@ -104,12 +109,12 @@ func (c *Comp) respond(now sim.VTimeInSec) bool {
 		rsp := sim.GeneralRspBuilder{}.
 			WithSrc(c.port).
 			WithDst(msg.pingReq.Meta().Src).
-			WithSendTime(now).
 			WithOriginalReq(msg.pingReq).
 			Build()
 
 		c.port.Send(rsp)
-		c.processingMsgs = append(c.processingMsgs[:i], c.processingMsgs[i+1:]...)
+		c.processingMsgs = append(
+			c.processingMsgs[:i], c.processingMsgs[i+1:]...)
 		i--
 		madeProgress = true
 	}
