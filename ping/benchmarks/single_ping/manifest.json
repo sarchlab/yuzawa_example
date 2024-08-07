@@ -1,5 +1,4 @@
 {
-    
     "main_package": "single_ping",
     "dependencies": [
         {
@@ -15,7 +14,7 @@
     ],
     "files": [
         {
-            "path": "single_ping/benchmark.go",
+            "path": "single_ping/benchmark.go"
         }
     ],
     "modules": [
@@ -24,5 +23,6 @@
             "path": "/single_ping",
             "files": ["benchmark.go"]
         }
-    ],
-    
+    ]
+}
+
