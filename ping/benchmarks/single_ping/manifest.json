@@ -23,7 +23,5 @@
             "path": "/single_ping",
             "files": ["benchmark.go"]
         }
-    ],
+    ]
 }
-
-
