@@ -41,7 +41,7 @@ func (c *Comp) handlePingEvent(e *PingEvent) error {
 		return err
 	}
 
-	pingReq.Meta().Src = c.remotePort
+	pingReq.Meta().Src = c.port.AsRemote()
 	pingReq.Meta().Dst = e.dst.GetPortByName("PingPort").AsRemote()
 
 	sendError := c.port.Send(pingReq)
@@ -108,7 +108,7 @@ func (c *Comp) respond() bool {
 		}
 
 		rsp := sim.GeneralRspBuilder{}.
-			WithSrc(c.remotePort).
+			WithSrc(c.port.AsRemote()).
 			WithDst(msg.pingReq.Meta().Src).
 			WithOriginalReq(msg.pingReq).
 			Build()
