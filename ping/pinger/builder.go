@@ -44,7 +44,7 @@ func (b *Builder) Build() *Comp {
 
 	c.pingProtocol = &PingProtocol{}
 
-	c.port = sim.NewLimitNumMsgPort(c, 1, b.name+".PingPort")
+	c.port = sim.NewPort(c, 1, 1, b.name+".PingPort")
 	c.AddPort("PingPort", c.port)
 
 	return c

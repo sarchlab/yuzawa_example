@@ -15,6 +15,7 @@ type processingMsg struct {
 type Comp struct {
 	*sim.TickingComponent
 
+	remotePort   sim.RemotePort
 	port         sim.Port
 	pingProtocol *PingProtocol
 
@@ -40,8 +41,8 @@ func (c *Comp) handlePingEvent(e *PingEvent) error {
 		return err
 	}
 
-	pingReq.Meta().Src = c.port
-	pingReq.Meta().Dst = e.dst.GetPortByName("PingPort")
+	pingReq.Meta().Src = c.remotePort
+	pingReq.Meta().Dst = e.dst.GetPortByName("PingPort").AsRemote()
 
 	sendError := c.port.Send(pingReq)
 	if sendError != nil {
@@ -107,7 +108,7 @@ func (c *Comp) respond() bool {
 		}
 
 		rsp := sim.GeneralRspBuilder{}.
-			WithSrc(c.port).
+			WithSrc(c.remotePort).
 			WithDst(msg.pingReq.Meta().Src).
 			WithOriginalReq(msg.pingReq).
 			Build()

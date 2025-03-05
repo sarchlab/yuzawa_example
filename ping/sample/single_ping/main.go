@@ -31,8 +31,8 @@ func main() {
 		WithEngine(engine).
 		WithFreq(1 * sim.GHz).
 		Build("Conn")
-	conn.PlugIn(sender.GetPortByName("PingPort"), 1)
-	conn.PlugIn(receiver.GetPortByName("PingPort"), 1)
+	conn.PlugIn(sender.GetPortByName("PingPort"))
+	conn.PlugIn(receiver.GetPortByName("PingPort"))
 
 	benchmarkBuilder := single_ping.NewBuilder().
 		WithSimulation(simulation).

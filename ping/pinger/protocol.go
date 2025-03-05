@@ -39,3 +39,7 @@ type PingReq struct {
 func (m *PingReq) Meta() *sim.MsgMeta {
 	return &m.MsgMeta
 }
+
+func (m *PingReq) Clone() sim.Msg {
+	return m
+}
