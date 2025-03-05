@@ -15,7 +15,6 @@ type processingMsg struct {
 type Comp struct {
 	*sim.TickingComponent
 
-	remotePort   sim.RemotePort
 	port         sim.Port
 	pingProtocol *PingProtocol
 
