@@ -19,3 +19,4 @@
 
 # Go workspace file
 go.work
+ping/sample/multi_ping/multi_ping
