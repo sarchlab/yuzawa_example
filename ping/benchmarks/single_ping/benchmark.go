@@ -12,16 +12,17 @@ import (
 type Benchmark struct {
 	simulation *sim.Simulation
 
-	senderName, receiverName string
+	senderNames []string
+	receiverName string
 }
 
 // Run runs the benchmark.
 func (b *Benchmark) Run() {
 	engine := b.simulation.GetEngine()
-	sender := b.simulation.GetComponentByName(b.senderName)
+	senders := b.simulation.GetComponentByName(b.senderNames[0])
 	receiver := b.simulation.GetComponentByName(b.receiverName)
 
-	evt := pinger.NewPingEvent(sender, receiver, 0)
+	evt := pinger.NewPingEvent(senders, receiver, 0)
 	engine.Schedule(evt)
 
 	engine.Run()

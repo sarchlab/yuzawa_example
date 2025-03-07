@@ -5,7 +5,8 @@ import "github.com/sarchlab/akita/v4/sim"
 // A Builder can build a benchmark
 type Builder struct {
 	simulation               *sim.Simulation
-	senderName, receiverName string
+	senderNames  []string 
+	receiverName string
 }
 
 // NewBuilder creates a new builder
@@ -20,8 +21,8 @@ func (b *Builder) WithSimulation(simulation *sim.Simulation) *Builder {
 }
 
 // WithSender sets the sender for the builder
-func (b *Builder) WithSender(sender string) *Builder {
-	b.senderName = sender
+func (b *Builder) WithSender(senders []string) *Builder {
+	b.senderNames = senders
 	return b
 }
 
@@ -35,7 +36,7 @@ func (b *Builder) WithReceiver(receiver string) *Builder {
 func (b *Builder) Build() *Benchmark {
 	return &Benchmark{
 		simulation:   b.simulation,
-		senderName:   b.senderName,
+		senderNames:   b.senderNames,
 		receiverName: b.receiverName,
 	}
 }

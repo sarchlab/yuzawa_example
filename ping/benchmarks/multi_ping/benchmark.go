@@ -22,13 +22,15 @@ func (b *Benchmark) Run() {
 	receiver := b.simulation.GetComponentByName(b.receiverName)
 
 	// Send multiple pings from each sender
-	for _, senderName := range b.senderNames {
+	for senderIndex, senderName := range b.senderNames {
 		sender := b.simulation.GetComponentByName(senderName)
 		for i := 0; i < b.numPingsPerSender; i++ {
-			evt := pinger.NewPingEvent(sender, receiver, 0)
+			// Stagger events by both the ping index and the sender index.
+			offset := 0.04*float64(i+1) + 0.001*float64(senderIndex)
+			evt := pinger.NewPingEvent(sender, receiver, engine.CurrentTime()+sim.VTimeInSec(offset))
 			engine.Schedule(evt)
 		}
-	}
+	}	
 
 	engine.Run()
 
