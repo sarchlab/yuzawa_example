@@ -13,7 +13,7 @@ import (
 	"github.com/sarchlab/akita/v4/sim"
 	"github.com/sarchlab/akita/v4/sim/directconnection"
 	"github.com/sarchlab/akita/v4/tracing"
-	imc "github.com/sarchlab/yuzawa_example/ping/benchmarks/ideal_mem_controller"
+	"github.com/sarchlab/yuzawa_example/ping/benchmarks/imc"
 )
 
 func main() {

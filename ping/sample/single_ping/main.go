@@ -36,7 +36,7 @@ func main() {
 
 	benchmarkBuilder := single_ping.NewBuilder().
 		WithSimulation(simulation).
-		WithSender("Sender").
+		WithSender([]string{"Sender"}).
 		WithReceiver("Receiver")
 	benchmark := benchmarkBuilder.Build()
 
