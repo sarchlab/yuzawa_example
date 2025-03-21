@@ -20,3 +20,4 @@
 # Go workspace file
 go.work
 ping/sample/multi_ping/multi_ping
+ping/sample/ideal_mem_controller/trace.log

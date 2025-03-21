@@ -1,0 +1,30 @@
+{
+    "main_package": "idealmemcontroller",
+    "dependencies": [
+        {
+            "name": "akita",
+            "version": "v4",
+            "repository": "https://github.com/sarchlab/akita"
+        },
+        {
+            "name": "yuzawa_example",
+            "version": "latest",
+            "repository": "https://github.com/sarchlab/yuzawa_example"
+        }
+    ],
+    "files": [
+        {
+            "path": "idealmemcontroller/benchmark.go"
+        },
+        {
+            "path": "idealmemcontroller/builder.go"
+        }
+    ],
+    "modules": [
+        {
+            "name": "idealmemcontroller",
+            "path": "/idealmemcontroller",
+            "files": ["benchmark.go", "builder.go"]
+        }
+    ]
+}
