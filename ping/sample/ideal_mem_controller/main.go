@@ -13,7 +13,7 @@ import (
 	"github.com/sarchlab/akita/v4/sim"
 	"github.com/sarchlab/akita/v4/sim/directconnection"
 	"github.com/sarchlab/akita/v4/tracing"
-	"github.com/sarchlab/yuzawa_example/ping/benchmarks/imc"
+	"github.com/sarchlab/yuzawa_example/ping/benchmarks/ideal_mem_controller"
 )
 
 func main() {
@@ -84,7 +84,7 @@ func main() {
 	tracer := trace.NewTracer(logger, engine)
 	tracing.CollectTrace(dram, tracer)
 
-	benchmarkBuilder := imc.NewBuilder().
+	benchmarkBuilder := ideal_mem_controller.NewBuilder().
 		WithSimulation(simulation).
 		WithNumAccess(1000).
 		WithMaxAddress(1 * mem.GB)

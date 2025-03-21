@@ -1,4 +1,4 @@
-package idealmemcontroller
+package ideal_mem_controller
 
 import (
 	"fmt"

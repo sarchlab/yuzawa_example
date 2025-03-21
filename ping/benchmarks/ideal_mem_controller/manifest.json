@@ -1,5 +1,5 @@
 {
-    "main_package": "idealmemcontroller",
+    "main_package": "ideal_mem_controller",
     "dependencies": [
         {
             "name": "akita",
@@ -14,16 +14,16 @@
     ],
     "files": [
         {
-            "path": "idealmemcontroller/benchmark.go"
+            "path": "ideal_mem_controller/benchmark.go"
         },
         {
-            "path": "idealmemcontroller/builder.go"
+            "path": "ideal_mem_controller/builder.go"
         }
     ],
     "modules": [
         {
-            "name": "idealmemcontroller",
-            "path": "/idealmemcontroller",
+            "name": "ideal_mem_controller",
+            "path": "/ideal_mem_controller",
             "files": ["benchmark.go", "builder.go"]
         }
     ]

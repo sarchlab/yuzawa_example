@@ -1,4 +1,4 @@
-package idealmemcontroller
+package ideal_mem_controller
 
 import (
 	"github.com/sarchlab/akita/v4/sim"
