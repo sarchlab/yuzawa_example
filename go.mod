@@ -18,4 +18,4 @@ require (
 
 // replace github.com/sarchlab/yuzawa_example/ping/benchmarks/multi_ping => /Users/sabilaaljannat/yuzawa_example/ping/benchmarks/multi_ping
 
-replace github.com/sarchlab/yuzawa_example/ping/benchmarks/ideal_mem_controller => /Users/sabilaaljannat/yuzawa_example/ping/benchmarks/imc
+// replace github.com/sarchlab/yuzawa_example/ping/benchmarks/ideal_mem_controller => /Users/sabilaaljannat/yuzawa_example/ping/benchmarks/ideal_mem_controller

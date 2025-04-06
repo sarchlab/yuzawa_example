@@ -6,14 +6,15 @@ import (
 	"time"
 	"math/rand"
 
-	"github.com/sarchlab/akita/v4/mem/acceptancetests"
 	"github.com/sarchlab/akita/v4/mem/idealmemcontroller"
 	"github.com/sarchlab/akita/v4/mem/mem"
 	"github.com/sarchlab/akita/v4/mem/trace"
 	"github.com/sarchlab/akita/v4/sim"
 	"github.com/sarchlab/akita/v4/sim/directconnection"
 	"github.com/sarchlab/akita/v4/tracing"
+
 	"github.com/sarchlab/yuzawa_example/ping/benchmarks/ideal_mem_controller"
+	"github.com/sarchlab/yuzawa_example/ping/memaccessagent"
 )
 
 func main() {
@@ -22,77 +23,73 @@ func main() {
 	if seed == 0 {
 		seed = int64(time.Now().UnixNano())
 	}
-	// rand.Seed(seed)
 	rand.New(rand.NewSource(seed))
+	log.Printf("Seed: %d\n", seed)
 
+	// Create simulation and engine
 	simulation := sim.NewSimulation()
 	engine := sim.NewParallelEngine()
 	simulation.RegisterEngine(engine)
 
-	// Create memory access agent
-	agent := acceptancetests.NewMemAccessAgent(engine)
-	agent.MaxAddress = 1 * mem.GB
-	agent.WriteLeft = 100000
-	agent.ReadLeft = 100000
+	// Instantiate MemAccessAgent using builder
+	agent := memaccessagent.NewBuilder().
+		WithEngine(engine).
+		WithName("MemAgent").
+		WithFreq(1 * sim.GHz).
+		WithMaxAddress(1 * mem.GB).
+		WithWriteLeft(100000).
+		WithReadLeft(100000).
+		Build()
 	simulation.RegisterComponent(agent)
 
-	// Create ideal memory controller
-	dram := idealmemcontroller.MakeBuilder().
+	// Create IdealMemoryController
+	idealmemcontroller := idealmemcontroller.MakeBuilder().
 		WithEngine(engine).
 		WithNewStorage(4 * mem.GB).
 		WithLatency(100).
-		Build("DRAM")
-	simulation.RegisterComponent(dram)
+		Build("IdealMemoryController")
+	simulation.RegisterComponent(idealmemcontroller)
 
-	if dram == nil {
-		panic("Error: Memory controller failed to initialize")
-	}
-
-	topPort := dram.GetPortByName("Top")
+	topPort := idealmemcontroller.GetPortByName("Top")
 	if topPort == nil {
-		panic("Error: DRAM GetPortByName('Top') returned nil")
+		panic("Error: IdealMemoryController GetPortByName('Top') returned nil")
 	}
 
 	// Assign LowModule for MemAccessAgent
 	agent.LowModule = topPort
-
 	if agent.LowModule == nil {
 		panic("Failed to assign LowModule: Port does not exist")
 	}
 
-	// Create connection
+	// Connect ports
 	conn := directconnection.MakeBuilder().
 		WithEngine(engine).
 		WithFreq(1 * sim.GHz).
 		Build("Conn")
 
 	// Ensure agent MemPort exists
-	agentMemPort := agent.GetPortByName("Mem")
-	if agentMemPort == nil {
+	agentPort := agent.GetPortByName("Mem")
+	if agentPort == nil {
 		panic("Error: MemPort does not exist")
 	}
 
-	conn.PlugIn(agentMemPort)
-	conn.PlugIn(dram.GetPortByName("Top"))
+	conn.PlugIn(agent.GetPortByName("Mem"))
+	conn.PlugIn(idealmemcontroller.GetPortByName("Top"))
 
-	// Enable tracing if --trace flag is provided
+	// Optional tracing
 	traceFile, err := os.Create("trace.log")
 	if err != nil {
 		panic("Error: Failed to create trace file")
 	}
 	logger := log.New(traceFile, "", 0)
 	tracer := trace.NewTracer(logger, engine)
-	tracing.CollectTrace(dram, tracer)
+	tracing.CollectTrace(idealmemcontroller, tracer)
 
-	benchmarkBuilder := ideal_mem_controller.NewBuilder().
+	// Run benchmark
+	benchmark := ideal_mem_controller.NewBuilder().
 		WithSimulation(simulation).
-		WithNumAccess(1000).
-		WithMaxAddress(1 * mem.GB)
-	benchmark := benchmarkBuilder.Build()
-
-	if benchmark == nil {
-		panic("Error: Benchmark failed to initialize")
-	}
-
+		WithNumAccess(100000).
+		WithMaxAddress(1 * mem.GB).
+		Build()
 	benchmark.Run()
 }

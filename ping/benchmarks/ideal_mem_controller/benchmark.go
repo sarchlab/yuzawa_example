@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/sarchlab/akita/v4/sim"
-	"github.com/sarchlab/akita/v4/mem/acceptancetests"
+	"github.com/sarchlab/yuzawa_example/ping/memaccessagent"
 )
 
 // Benchmark is a benchmark that tests the IdealMemController.
@@ -17,7 +17,7 @@ type Benchmark struct {
 // Run executes the benchmark.
 func (b *Benchmark) Run() {
 	engine := b.simulation.GetEngine()
-	agent := b.simulation.GetComponentByName("MemAgent").(*acceptancetests.MemAccessAgent)
+	agent := b.simulation.GetComponentByName("MemAgent").(*memaccessagent.MemAccessAgent)
 
 	agent.WriteLeft = b.numAccess
 	agent.ReadLeft = b.numAccess
