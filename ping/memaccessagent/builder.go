@@ -54,9 +54,15 @@ func (b *Builder) WithReadLeft(read int) *Builder {
 
 func (b *Builder) Build(name string) *MemAccessAgent {
 	agent := NewMemAccessAgent(b.engine)
+
 	agent.TickingComponent = sim.NewTickingComponent(name, b.engine, b.freq, agent)
 	agent.MaxAddress = b.maxAddress
 	agent.WriteLeft = b.writeLeft
 	agent.ReadLeft = b.readLeft
+
+	agent.memPort = sim.NewPort(agent, 1, 1, name+".Mem")
+	agent.AddPort("Mem", agent.memPort)
+
 	return agent
 }
+
