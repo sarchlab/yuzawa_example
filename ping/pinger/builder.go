@@ -36,16 +36,17 @@ func (b *Builder) WithName(name string) *Builder {
 }
 
 // Build creates a new Ping Component.
-func (b *Builder) Build() *Comp {
+func (b *Builder) Build(name string) *Comp {
 	c := &Comp{}
 
 	c.TickingComponent = sim.NewTickingComponent(
-		b.name, b.engine, b.freq, c)
+		name, b.engine, b.freq, c)
 
 	c.pingProtocol = &PingProtocol{}
 
-	c.port = sim.NewPort(c, 1, 1, b.name+".PingPort")
+	c.port = sim.NewPort(c, 1, 1, name+".PingPort")
 	c.AddPort("PingPort", c.port)
 
 	return c
 }
+

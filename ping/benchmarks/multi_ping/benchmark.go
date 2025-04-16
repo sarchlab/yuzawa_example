@@ -10,6 +10,7 @@ import (
 
 // The Benchmark struct is the benchmark that performs multiple pings.
 type Benchmark struct {
+	Name                  string
 	simulation             *sim.Simulation
 	senderNames            []string
 	receiverName           string
