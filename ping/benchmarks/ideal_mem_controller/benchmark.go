@@ -9,6 +9,7 @@ import (
 
 // Benchmark is a benchmark that tests the IdealMemController.
 type Benchmark struct {
+	Name string
 	simulation *sim.Simulation
 	numAccess int
 	maxAddress uint64

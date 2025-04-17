@@ -35,8 +35,9 @@ func (b *Builder) WithMaxAddress(a uint64) *Builder {
 }
 
 // Build creates a new Benchmark.
-func (b *Builder) Build() *Benchmark {
+func (b *Builder) Build(name string) *Benchmark {
 	return &Benchmark{
+		Name:              name,
 		simulation: b.simulation,
 		numAccess: b.numAccess,
 		maxAddress: b.maxAddress,
