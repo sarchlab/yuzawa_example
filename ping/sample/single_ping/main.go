@@ -13,18 +13,16 @@ func main() {
 	engine := sim.NewSerialEngine()
 	simulation.RegisterEngine(engine)
 
-	pingBuilder := pinger.NewBuilder().
+	pingBuilder := pinger.MakeBuilder().
 		WithEngine(engine).
-		WithFreq(1 * sim.GHz).
-		WithName("Sender")
-	sender := pingBuilder.Build()
+		WithFreq(1 * sim.GHz)
+	sender := pingBuilder.Build("Sender")
 	simulation.RegisterComponent(sender)
 
-	pingBuilder = pinger.NewBuilder().
+	pingBuilder = pinger.MakeBuilder().
 		WithEngine(engine).
-		WithFreq(1 * sim.GHz).
-		WithName("Receiver")
-	receiver := pingBuilder.Build()
+		WithFreq(1 * sim.GHz)
+	receiver := pingBuilder.Build("Receiver")
 	simulation.RegisterComponent(receiver)
 
 	conn := directconnection.MakeBuilder().
@@ -34,11 +32,11 @@ func main() {
 	conn.PlugIn(sender.GetPortByName("PingPort"))
 	conn.PlugIn(receiver.GetPortByName("PingPort"))
 
-	benchmarkBuilder := single_ping.NewBuilder().
+	benchmarkBuilder := single_ping.MakeBuilder().
 		WithSimulation(simulation).
 		WithSender([]string{"Sender"}).
 		WithReceiver("Receiver")
-	benchmark := benchmarkBuilder.Build()
+	benchmark := benchmarkBuilder.Build("Benchmark")
 
 	benchmark.Run()
 }

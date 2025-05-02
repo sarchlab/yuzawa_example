@@ -4,15 +4,15 @@ package memaccessagent
 import "github.com/sarchlab/akita/v4/sim"
 
 type Builder struct {
-	name        string
-	engine      sim.Engine
-	freq        sim.Freq
-	maxAddress  uint64
-	writeLeft   int
-	readLeft    int
+	name       string
+	engine     sim.Engine
+	freq       sim.Freq
+	maxAddress uint64
+	writeLeft  int
+	readLeft   int
 }
 
-func NewBuilder() *Builder {
+func MakeBuilder() *Builder {
 	return &Builder{
 		name:       "MemAccessAgent",
 		freq:       1 * sim.GHz,
@@ -65,4 +65,3 @@ func (b *Builder) Build(name string) *MemAccessAgent {
 
 	return agent
 }
-

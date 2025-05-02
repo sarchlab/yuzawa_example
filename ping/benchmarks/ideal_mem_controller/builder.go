@@ -6,14 +6,13 @@ import (
 
 // Builder helps in setting up the memory controller simulation.
 type Builder struct {
-	Name string
 	simulation *sim.Simulation
 	numAccess int
 	maxAddress uint64
 }
 
-// NewBuilder creates a new Builder.
-func NewBuilder() *Builder {
+// MakeBuilder creates a new Builder.
+func MakeBuilder() *Builder {
 	return &Builder{}
 }
 

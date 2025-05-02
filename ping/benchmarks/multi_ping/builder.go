@@ -4,15 +4,14 @@ import "github.com/sarchlab/akita/v4/sim"
 
 // A Builder can build a benchmark
 type Builder struct {
-	Name 		   string
 	simulation        *sim.Simulation
 	senderNames       []string
 	receiverName      string
 	numPingsPerSender int
 }
 
-// NewBuilder creates a new builder
-func NewBuilder() *Builder {
+// MakeBuilder creates a new builder
+func MakeBuilder() *Builder {
 	return &Builder{}
 }
 

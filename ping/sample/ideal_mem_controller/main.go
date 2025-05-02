@@ -2,9 +2,9 @@ package main
 
 import (
 	"log"
+	"math/rand"
 	"os"
 	"time"
-	"math/rand"
 
 	"github.com/sarchlab/akita/v4/mem/idealmemcontroller"
 	"github.com/sarchlab/akita/v4/mem/mem"
@@ -32,14 +32,14 @@ func main() {
 	simulation.RegisterEngine(engine)
 
 	// Instantiate MemAccessAgent using builder
-	agent := memaccessagent.NewBuilder().
+	agent := memaccessagent.MakeBuilder().
 		WithEngine(engine).
 		WithName("MemAgent").
 		WithFreq(1 * sim.GHz).
 		WithMaxAddress(1 * mem.GB).
 		WithWriteLeft(100000).
 		WithReadLeft(100000).
-		Build()
+		Build("MemAgent")
 	simulation.RegisterComponent(agent)
 
 	// Create IdealMemoryController
@@ -86,10 +86,10 @@ func main() {
 	tracing.CollectTrace(idealmemcontroller, tracer)
 
 	// Run benchmark
-	benchmark := ideal_mem_controller.NewBuilder().
+	benchmark := ideal_mem_controller.MakeBuilder().
 		WithSimulation(simulation).
 		WithNumAccess(100000).
 		WithMaxAddress(1 * mem.GB).
-		Build()
+		Build("Benchmark")
 	benchmark.Run()
 }

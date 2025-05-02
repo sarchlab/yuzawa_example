@@ -14,26 +14,23 @@ func main() {
 	simulation.RegisterEngine(engine)
 
 	// Create two senders
-	pingBuilder := pinger.NewBuilder().
+	pingBuilder := pinger.MakeBuilder().
 		WithEngine(engine).
-		WithFreq(1 * sim.GHz).
-		WithName("Sender1")
-	sender1 := pingBuilder.Build()
+		WithFreq(1 * sim.GHz)
+	sender1 := pingBuilder.Build("Sender1")
 	simulation.RegisterComponent(sender1)
 
-	pingBuilder = pinger.NewBuilder().
+	pingBuilder = pinger.MakeBuilder().
 		WithEngine(engine).
-		WithFreq(1 * sim.GHz).
-		WithName("Sender2")
-	sender2 := pingBuilder.Build()
+		WithFreq(1 * sim.GHz)
+	sender2 := pingBuilder.Build("Sender2")
 	simulation.RegisterComponent(sender2)
 
 	// Create a receiver
-	pingBuilder = pinger.NewBuilder().
+	pingBuilder = pinger.MakeBuilder().
 		WithEngine(engine).
-		WithFreq(1 * sim.GHz).
-		WithName("Receiver")
-	receiver := pingBuilder.Build()
+		WithFreq(1 * sim.GHz)
+	receiver := pingBuilder.Build("Receiver")
 	simulation.RegisterComponent(receiver)
 
 	// Create connection
@@ -46,12 +43,12 @@ func main() {
 	conn.PlugIn(receiver.GetPortByName("PingPort"))
 
 	// Run multiple pings
-	benchmarkBuilder := multi_ping.NewBuilder().
+	benchmarkBuilder := multi_ping.MakeBuilder().
 		WithSimulation(simulation).
 		WithSenders([]string{"Sender1", "Sender2"}).
 		WithReceiver("Receiver").
 		WithNumPings(5) // Each sender sends 5 pings
-	benchmark := benchmarkBuilder.Build()
+	benchmark := benchmarkBuilder.Build("Benchmark")
 
 	benchmark.Run()
 }

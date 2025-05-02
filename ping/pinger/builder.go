@@ -9,8 +9,8 @@ type Builder struct {
 	freq   sim.Freq
 }
 
-// NewBuilder creates a new builder.
-func NewBuilder() *Builder {
+// MakeBuilder creates a new builder.
+func MakeBuilder() *Builder {
 	return &Builder{
 		name: "Pinger",
 		freq: 1 * sim.GHz,
@@ -49,4 +49,3 @@ func (b *Builder) Build(name string) *Comp {
 
 	return c
 }
-
