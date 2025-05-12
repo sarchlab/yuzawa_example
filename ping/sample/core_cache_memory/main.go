@@ -2,12 +2,10 @@ package main
 
 import (
 	"log"
-	"math/rand"
 	"os"
-	"time"
 
-	"github.com/sarchlab/akita/v4/mem/cache/writeback"
 	"github.com/sarchlab/akita/v4/mem/cache/writethrough"
+	"github.com/sarchlab/akita/v4/mem/cache/writeback"
 	"github.com/sarchlab/akita/v4/mem/idealmemcontroller"
 	"github.com/sarchlab/akita/v4/mem/mem"
 	"github.com/sarchlab/akita/v4/mem/trace"
@@ -19,74 +17,61 @@ import (
 )
 
 func main() {
-	seed := int64(0)
-	if seed == 0 {
-		seed = int64(time.Now().UnixNano())
-	}
-	rand.New(rand.NewSource(seed))
-	log.Printf("Seed: %d\n", seed)
-
 	simulation := sim.NewSimulation()
 	engine := sim.NewParallelEngine()
 	simulation.RegisterEngine(engine)
 
-	core := memaccessagent.MakeBuilder().
-		WithName("Core").
+	MemCtrl := idealmemcontroller.MakeBuilder().
+		WithEngine(engine).
+		WithNewStorage(4 * mem.GB).
+		WithLatency(100).
+		Build("MemCtrl")
+	simulation.RegisterComponent(MemCtrl)
+
+	L2Cache := writeback.MakeBuilder().
+		WithEngine(engine).
+		WithFreq(1 * sim.GHz).
+		WithWayAssociativity(4).
+		WithNumReqPerCycle(2).
+		WithAddressMapperType("single").
+		WithRemotePorts(MemCtrl.GetPortByName("Top").AsRemote()).
+		Build("L2Cache")
+	simulation.RegisterComponent(L2Cache)
+
+	L1Cache := writethrough.MakeBuilder().
+		WithEngine(engine).
+		WithFreq(1 * sim.GHz).
+		WithWayAssociativity(2).
+		WithAddressMapperType("single").
+		WithRemotePorts(L2Cache.GetPortByName("Top").AsRemote()).
+		Build("L1Cache")
+	simulation.RegisterComponent(L1Cache)
+
+	MemAgent := memaccessagent.MakeBuilder().
 		WithFreq(1 * sim.GHz).
 		WithMaxAddress(1 * mem.GB).
 		WithWriteLeft(100000).
 		WithReadLeft(100000).
 		WithEngine(engine).
-		Build("Core")
-	simulation.RegisterComponent(core)
+		Build("MemAgent")
+	simulation.RegisterComponent(MemAgent)
 
-	l1 := writethrough.MakeBuilder().
-		WithEngine(engine).
-		WithFreq(1 * sim.GHz).
-		WithWayAssociativity(2).
-		Build("L1Cache")
-	simulation.RegisterComponent(l1)
+	MemAgent.LowModule = L1Cache.GetPortByName("Top")
+	if MemAgent.LowModule == nil {
+		panic("Failed to assign LowModule: Top port not found")
+	}
 
-	l2 := writeback.MakeBuilder().
-		WithEngine(engine).
-		WithFreq(1 * sim.GHz).
-		WithWayAssociativity(4).
-		WithNumReqPerCycle(2).
-		Build("L2Cache")
-	simulation.RegisterComponent(l2)
+	Conn1 := directconnection.MakeBuilder().WithEngine(engine).WithFreq(1 * sim.GHz).Build("Conn1")
+	Conn1.PlugIn(MemAgent.GetPortByName("Mem"))
+	Conn1.PlugIn(L1Cache.GetPortByName("Top"))
 
-	memCtrl := idealmemcontroller.MakeBuilder().
-		WithEngine(engine).
-		WithNewStorage(4 * mem.GB).
-		WithLatency(100).
-		Build("MemCtrl")
-	simulation.RegisterComponent(memCtrl)
+	Conn2 := directconnection.MakeBuilder().WithEngine(engine).WithFreq(1 * sim.GHz).Build("Conn2")
+	Conn2.PlugIn(L1Cache.GetPortByName("Bottom"))
+	Conn2.PlugIn(L2Cache.GetPortByName("Top"))
 
-	l1.SetAddressToPortMapper(&mem.SinglePortMapper{Port: l2.GetPortByName("Top").AsRemote()})
-	l2.SetAddressToPortMapper(&mem.SinglePortMapper{Port: memCtrl.GetPortByName("Top").AsRemote()})
-
-	core.LowModule = l1.GetPortByName("Top")
-
-	conn1 := directconnection.MakeBuilder().
-		WithEngine(engine).
-		WithFreq(1 * sim.GHz).
-		Build("Conn1")
-	conn1.PlugIn(core.GetPortByName("Mem"))
-	conn1.PlugIn(l1.GetPortByName("Top"))
-
-	conn2 := directconnection.MakeBuilder().
-		WithEngine(engine).
-		WithFreq(1 * sim.GHz).
-		Build("Conn2")
-	conn2.PlugIn(l1.GetPortByName("Bottom"))
-	conn2.PlugIn(l2.GetPortByName("Top"))
-
-	conn3 := directconnection.MakeBuilder().
-		WithEngine(engine).
-		WithFreq(1 * sim.GHz).
-		Build("Conn3")
-	conn3.PlugIn(l2.GetPortByName("Bottom"))
-	conn3.PlugIn(memCtrl.GetPortByName("Top"))
+	Conn3 := directconnection.MakeBuilder().WithEngine(engine).WithFreq(1 * sim.GHz).Build("Conn3")
+	Conn3.PlugIn(L2Cache.GetPortByName("Bottom"))
+	Conn3.PlugIn(MemCtrl.GetPortByName("Top"))
 
 	traceFile, err := os.Create("trace.log")
 	if err != nil {
@@ -94,14 +79,12 @@ func main() {
 	}
 	logger := log.New(traceFile, "", 0)
 	tracer := trace.NewTracer(logger, engine)
-	tracing.CollectTrace(memCtrl, tracer)
+	tracing.CollectTrace(MemCtrl, tracer)
 
 	benchmark := ideal_mem_controller.MakeBuilder().
 		WithSimulation(simulation).
 		WithNumAccess(100000).
 		WithMaxAddress(1 * mem.GB).
 		Build("Benchmark")
-
 	benchmark.Run()
-
 }
