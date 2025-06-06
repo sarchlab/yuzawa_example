@@ -1,0 +1,32 @@
+{
+    "name": "MMU",
+    "description": "Page walker + optional on‐demand migration support",
+    "ports": [
+      { "name": "Top" },
+      { "name": "Migration" }
+    ],
+    "parameters": [
+      {
+        "name": "Freq",
+        "type": "float",
+        "unit": "GHz",
+        "default": 1
+      },
+      {
+        "name": "Log2PageSize",
+        "type": "int",
+        "default": 12
+      },
+      {
+        "name": "MaxNumReqInFlight",
+        "type": "int",
+        "default": 16
+      },
+      {
+        "name": "PageWalkingLatency",
+        "type": "int",
+        "default": 100
+      }
+    ]
+}
+  

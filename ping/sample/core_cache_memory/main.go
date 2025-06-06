@@ -4,29 +4,34 @@ import (
 	"log"
 	"os"
 
-	"github.com/sarchlab/akita/v4/mem/cache/writethrough"
 	"github.com/sarchlab/akita/v4/mem/cache/writeback"
+	"github.com/sarchlab/akita/v4/mem/cache/writethrough"
 	"github.com/sarchlab/akita/v4/mem/idealmemcontroller"
 	"github.com/sarchlab/akita/v4/mem/mem"
 	"github.com/sarchlab/akita/v4/mem/trace"
 	"github.com/sarchlab/akita/v4/sim"
 	"github.com/sarchlab/akita/v4/sim/directconnection"
+	"github.com/sarchlab/akita/v4/simulation"
 	"github.com/sarchlab/akita/v4/tracing"
 	"github.com/sarchlab/yuzawa_example/ping/benchmarks/ideal_mem_controller"
 	"github.com/sarchlab/yuzawa_example/ping/memaccessagent"
 )
 
 func main() {
-	simulation := sim.NewSimulation()
-	engine := sim.NewParallelEngine()
-	simulation.RegisterEngine(engine)
+	// simulation := sim.NewSimulation()
+	// engine := sim.NewParallelEngine()
+	// simulation.RegisterEngine(engine)
+
+	simBuilder := simulation.MakeBuilder().Build()
+	// simulation := simBuilder.Build()
+	engine := simBuilder.GetEngine()
 
 	MemCtrl := idealmemcontroller.MakeBuilder().
 		WithEngine(engine).
 		WithNewStorage(4 * mem.GB).
 		WithLatency(100).
 		Build("MemCtrl")
-	simulation.RegisterComponent(MemCtrl)
+	simBuilder.RegisterComponent(MemCtrl)
 
 	L2Cache := writeback.MakeBuilder().
 		WithEngine(engine).
@@ -36,7 +41,7 @@ func main() {
 		WithAddressMapperType("single").
 		WithRemotePorts(MemCtrl.GetPortByName("Top").AsRemote()).
 		Build("L2Cache")
-	simulation.RegisterComponent(L2Cache)
+	simBuilder.RegisterComponent(L2Cache)
 
 	L1Cache := writethrough.MakeBuilder().
 		WithEngine(engine).
@@ -45,7 +50,7 @@ func main() {
 		WithAddressMapperType("single").
 		WithRemotePorts(L2Cache.GetPortByName("Top").AsRemote()).
 		Build("L1Cache")
-	simulation.RegisterComponent(L1Cache)
+	simBuilder.RegisterComponent(L1Cache)
 
 	MemAgent := memaccessagent.MakeBuilder().
 		WithFreq(1 * sim.GHz).
@@ -54,7 +59,7 @@ func main() {
 		WithReadLeft(100000).
 		WithEngine(engine).
 		Build("MemAgent")
-	simulation.RegisterComponent(MemAgent)
+	simBuilder.RegisterComponent(MemAgent)
 
 	MemAgent.LowModule = L1Cache.GetPortByName("Top")
 	if MemAgent.LowModule == nil {
@@ -82,7 +87,7 @@ func main() {
 	tracing.CollectTrace(MemCtrl, tracer)
 
 	benchmark := ideal_mem_controller.MakeBuilder().
-		WithSimulation(simulation).
+		WithSimulation(simBuilder).
 		WithNumAccess(100000).
 		WithMaxAddress(1 * mem.GB).
 		Build("Benchmark")

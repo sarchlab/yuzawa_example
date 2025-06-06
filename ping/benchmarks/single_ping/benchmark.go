@@ -4,14 +4,14 @@ package single_ping
 import (
 	"fmt"
 
-	"github.com/sarchlab/akita/v4/sim"
+	"github.com/sarchlab/akita/v4/simulation"
 	"github.com/sarchlab/yuzawa_example/ping/pinger"
 )
 
 // The Benchmark struct is the benchmark that perform ping once.
 type Benchmark struct {
 	Name string
-	simulation *sim.Simulation
+	simulation *simulation.Simulation
 	senderNames []string
 	receiverName string
 }

@@ -1,7 +1,10 @@
 // builder.go
 package memaccessagent
 
-import "github.com/sarchlab/akita/v4/sim"
+import (
+	"github.com/sarchlab/akita/v4/sim"
+	"math/rand"
+)
 
 type Builder struct {
 	name       string
@@ -10,6 +13,7 @@ type Builder struct {
 	maxAddress uint64
 	writeLeft  int
 	readLeft   int
+	useVirtualAddress bool
 }
 
 func MakeBuilder() *Builder {
@@ -52,6 +56,15 @@ func (b *Builder) WithReadLeft(read int) *Builder {
 	return b
 }
 
+func (b *Builder) UseVirtualAddress(use bool) *Builder {
+	b.useVirtualAddress = use
+	return b
+}
+
+func (a *MemAccessAgent) randomVirtualAddress() uint64 {
+	return rand.Uint64() % (a.MaxAddress / 4) * 4
+}
+
 func (b *Builder) Build(name string) *MemAccessAgent {
 	agent := NewMemAccessAgent(b.engine)
 
@@ -59,6 +72,8 @@ func (b *Builder) Build(name string) *MemAccessAgent {
 	agent.MaxAddress = b.maxAddress
 	agent.WriteLeft = b.writeLeft
 	agent.ReadLeft = b.readLeft
+
+	agent.UseVirtualAddress = b.useVirtualAddress
 
 	agent.memPort = sim.NewPort(agent, 1, 1, name+".Mem")
 	agent.AddPort("Mem", agent.memPort)

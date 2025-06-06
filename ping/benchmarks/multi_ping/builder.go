@@ -1,10 +1,10 @@
 package multi_ping
 
-import "github.com/sarchlab/akita/v4/sim"
+import "github.com/sarchlab/akita/v4/simulation"
 
 // A Builder can build a benchmark
 type Builder struct {
-	simulation        *sim.Simulation
+	simulation        *simulation.Simulation
 	senderNames       []string
 	receiverName      string
 	numPingsPerSender int
@@ -16,7 +16,7 @@ func MakeBuilder() *Builder {
 }
 
 // WithSimulation sets the simulation for the builder
-func (b *Builder) WithSimulation(simulation *sim.Simulation) *Builder {
+func (b *Builder) WithSimulation(simulation *simulation.Simulation) *Builder {
 	b.simulation = simulation
 	return b
 }

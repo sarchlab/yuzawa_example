@@ -10,6 +10,7 @@ import (
 	"github.com/sarchlab/akita/v4/mem/mem"
 	"github.com/sarchlab/akita/v4/mem/trace"
 	"github.com/sarchlab/akita/v4/sim"
+	"github.com/sarchlab/akita/v4/simulation"
 	"github.com/sarchlab/akita/v4/sim/directconnection"
 	"github.com/sarchlab/akita/v4/tracing"
 
@@ -27,9 +28,13 @@ func main() {
 	log.Printf("Seed: %d\n", seed)
 
 	// Create simulation and engine
-	simulation := sim.NewSimulation()
-	engine := sim.NewParallelEngine()
-	simulation.RegisterEngine(engine)
+	// simulation := sim.NewSimulation()
+	// engine := sim.NewParallelEngine()
+	// simulation.RegisterEngine(engine)
+
+	simBuilder := simulation.MakeBuilder().Build()
+	// simulation := simBuilder.Build()
+	engine := simBuilder.GetEngine()
 
 	// Instantiate MemAccessAgent using builder
 	agent := memaccessagent.MakeBuilder().
@@ -40,7 +45,7 @@ func main() {
 		WithWriteLeft(100000).
 		WithReadLeft(100000).
 		Build("MemAgent")
-	simulation.RegisterComponent(agent)
+	simBuilder.RegisterComponent(agent)
 
 	// Create IdealMemoryController
 	idealmemcontroller := idealmemcontroller.MakeBuilder().
@@ -48,7 +53,7 @@ func main() {
 		WithNewStorage(4 * mem.GB).
 		WithLatency(100).
 		Build("IdealMemoryController")
-	simulation.RegisterComponent(idealmemcontroller)
+	simBuilder.RegisterComponent(idealmemcontroller)
 
 	topPort := idealmemcontroller.GetPortByName("Top")
 	if topPort == nil {
@@ -87,7 +92,7 @@ func main() {
 
 	// Run benchmark
 	benchmark := ideal_mem_controller.MakeBuilder().
-		WithSimulation(simulation).
+		WithSimulation(simBuilder).
 		WithNumAccess(100000).
 		WithMaxAddress(1 * mem.GB).
 		Build("Benchmark")

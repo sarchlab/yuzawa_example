@@ -1,12 +1,12 @@
 package ideal_mem_controller
 
 import (
-	"github.com/sarchlab/akita/v4/sim"
+	"github.com/sarchlab/akita/v4/simulation"
 )
 
 // Builder helps in setting up the memory controller simulation.
 type Builder struct {
-	simulation *sim.Simulation
+	simulation *simulation.Simulation
 	numAccess int
 	maxAddress uint64
 }
@@ -17,7 +17,7 @@ func MakeBuilder() *Builder {
 }
 
 // WithSimulation sets the simulation for the benchmark.
-func (b *Builder) WithSimulation(s *sim.Simulation) *Builder {
+func (b *Builder) WithSimulation(s *simulation.Simulation) *Builder {
 	b.simulation = s
 	return b
 }

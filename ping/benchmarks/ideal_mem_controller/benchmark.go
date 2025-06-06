@@ -3,14 +3,14 @@ package ideal_mem_controller
 import (
 	"fmt"
 
-	"github.com/sarchlab/akita/v4/sim"
+	"github.com/sarchlab/akita/v4/simulation"
 	"github.com/sarchlab/yuzawa_example/ping/memaccessagent"
 )
 
 // Benchmark is a benchmark that tests the IdealMemController.
 type Benchmark struct {
 	Name string
-	simulation *sim.Simulation
+	simulation *simulation.Simulation
 	numAccess int
 	maxAddress uint64
 }
@@ -31,11 +31,11 @@ func (b *Benchmark) Run() {
 	}
 
 	if len(agent.PendingWriteReq) > 0 || len(agent.PendingReadReq) > 0 {
-		panic(fmt.Errorf("There are still pending requests"))
+		panic(fmt.Errorf("there are still pending requests"))
 	}
 
 	if agent.WriteLeft > 0 || agent.ReadLeft > 0 {
-		panic(fmt.Errorf("There are still requests left"))
+		panic(fmt.Errorf("there are still requests left"))
 	}
 
 	fmt.Printf("End time: %.10f seconds\n",

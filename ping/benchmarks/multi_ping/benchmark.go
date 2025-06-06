@@ -4,6 +4,7 @@ package multi_ping
 import (
 	"fmt"
 
+	"github.com/sarchlab/akita/v4/simulation"
 	"github.com/sarchlab/akita/v4/sim"
 	"github.com/sarchlab/yuzawa_example/ping/pinger"
 )
@@ -11,7 +12,7 @@ import (
 // The Benchmark struct is the benchmark that performs multiple pings.
 type Benchmark struct {
 	Name                  string
-	simulation             *sim.Simulation
+	simulation             *simulation.Simulation
 	senderNames            []string
 	receiverName           string
 	numPingsPerSender      int

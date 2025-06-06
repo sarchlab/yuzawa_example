@@ -29,6 +29,7 @@ type MemAccessAgent struct {
 	PendingWriteReq map[string]*mem.WriteReq
 
 	memPort sim.Port
+	UseVirtualAddress bool
 }
 
 func (a *MemAccessAgent) checkReadResult(
@@ -132,7 +133,12 @@ func (a *MemAccessAgent) shouldRead() bool {
 }
 
 func (a *MemAccessAgent) doRead() bool {
-	address := a.randomReadAddress()
+	var address uint64
+	if a.UseVirtualAddress {
+		address = a.randomVirtualAddress()
+	} else {
+		address = a.randomReadAddress()
+	}
 
 	if a.isAddressInPendingReq(address) {
 		return false
@@ -165,7 +171,11 @@ func (a *MemAccessAgent) randomReadAddress() uint64 {
 	var addr uint64
 
 	for {
-		addr = rand.Uint64() % (a.MaxAddress / 4) * 4
+		if a.UseVirtualAddress {
+			addr = 0x100000000 + rand.Uint64()%(a.MaxAddress/4)*4  // e.g., start virtual at 0x100000000
+		} else {
+			addr = rand.Uint64() % (a.MaxAddress / 4) * 4
+		}
 		if _, written := a.KnownMemValue[addr]; written {
 			return addr
 		}
@@ -214,7 +224,12 @@ func bytesToUint32(data []byte) uint32 {
 }
 
 func (a *MemAccessAgent) doWrite() bool {
-	address := rand.Uint64() % (a.MaxAddress / 4) * 4
+	var address uint64
+	if a.UseVirtualAddress {
+		address = 0x100000000 + rand.Uint64()%(a.MaxAddress/4)*4
+	} else {
+		address = rand.Uint64() % (a.MaxAddress / 4) * 4
+	}
 	data := rand.Uint32()
 
 	if a.isAddressInPendingReq(address) {

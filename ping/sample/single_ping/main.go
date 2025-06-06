@@ -2,28 +2,33 @@ package main
 
 import (
 	"github.com/sarchlab/akita/v4/sim"
+	"github.com/sarchlab/akita/v4/simulation"
 	"github.com/sarchlab/akita/v4/sim/directconnection"
 	"github.com/sarchlab/yuzawa_example/ping/benchmarks/single_ping"
 	"github.com/sarchlab/yuzawa_example/ping/pinger"
 )
 
 func main() {
-	simulation := sim.NewSimulation()
+	// simulation := sim.NewSimulation()
 
-	engine := sim.NewSerialEngine()
-	simulation.RegisterEngine(engine)
+	// engine := sim.NewSerialEngine()
+	// simulation.RegisterEngine(engine)
+
+	simBuilder := simulation.MakeBuilder().Build()
+	// simulation := simBuilder.Build()
+	engine := simBuilder.GetEngine()
 
 	pingBuilder := pinger.MakeBuilder().
 		WithEngine(engine).
 		WithFreq(1 * sim.GHz)
 	sender := pingBuilder.Build("Sender")
-	simulation.RegisterComponent(sender)
+	simBuilder.RegisterComponent(sender)
 
 	pingBuilder = pinger.MakeBuilder().
 		WithEngine(engine).
 		WithFreq(1 * sim.GHz)
 	receiver := pingBuilder.Build("Receiver")
-	simulation.RegisterComponent(receiver)
+	simBuilder.RegisterComponent(receiver)
 
 	conn := directconnection.MakeBuilder().
 		WithEngine(engine).
@@ -33,7 +38,7 @@ func main() {
 	conn.PlugIn(receiver.GetPortByName("PingPort"))
 
 	benchmarkBuilder := single_ping.MakeBuilder().
-		WithSimulation(simulation).
+		WithSimulation(simBuilder).
 		WithSender([]string{"Sender"}).
 		WithReceiver("Receiver")
 	benchmark := benchmarkBuilder.Build("Benchmark")
