@@ -2,14 +2,15 @@ package multi_stage_memory
 
 import (
 	"fmt"
+
 	"github.com/sarchlab/akita/v4/simulation"
 	"github.com/sarchlab/yuzawa_example/ping/memaccessagent"
 )
 
 type Benchmark struct {
-	name string
+	name       string
 	simulation *simulation.Simulation
-	numAccess int
+	numAccess  int
 	maxAddress uint64
 
 	ioMMUName string

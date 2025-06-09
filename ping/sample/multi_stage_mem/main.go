@@ -130,7 +130,7 @@ func main() {
 	if MemAgent.LowModule == nil {
 		panic("Failed to assign LowModule: Top port not found")
 	}
-	
+
 	Conn1 := directconnection.MakeBuilder().WithEngine(engine).WithFreq(1 * sim.GHz).Build("Conn1")
 	Conn1.PlugIn(MemAgent.GetPortByName("Mem"))
 	Conn1.PlugIn(ROB.GetPortByName("Top"))
@@ -172,9 +172,9 @@ func main() {
 	tracing.CollectTrace(MemCtrl, tracer)
 
 	benchmark := multi_stage_memory.MakeBuilder().
-	WithSimulation(simBuilder).
-	WithNumAccess(100000).
-	WithMaxAddress(1 * mem.GB).
-	Build("Benchmark")
+		WithSimulation(simBuilder).
+		WithNumAccess(100000).
+		WithMaxAddress(1 * mem.GB).
+		Build("Benchmark")
 	benchmark.Run()
 }

@@ -23,6 +23,6 @@ require (
 )
 
 replace (
-	github.com/sarchlab/akita/v4 => /Users/sabilaaljannat/akita
-	github.com/sarchlab/yuzawa_example => /Users/sabilaaljannat/yuzawa_example
+	github.com/sarchlab/akita/v4 => /Users/yifan/dev/src/github.com/sarchlab/akita
+	github.com/sarchlab/yuzawa_example => /Users/yifan/dev/src/github.com/sarchlab/yuzawa_example
 )

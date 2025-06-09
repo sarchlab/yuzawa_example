@@ -25,6 +25,6 @@ require (
 
 // replace github.com/sarchlab/yuzawa_example/ping/benchmarks/multi_ping => /Users/sabilaaljannat/yuzawa_example/ping/benchmarks/multi_ping
 
-replace github.com/sarchlab/yuzawa_example => /Users/sabilaaljannat/yuzawa_example
+// replace github.com/sarchlab/yuzawa_example => /Users/sabilaaljannat/yuzawa_example
 
-replace github.com/sarchlab/akita/v4/mem/cache/writethrough => /Users/sabilaaljannat/akita/mem/cache/writethrough
+replace github.com/sarchlab/akita/v4 => ../akita

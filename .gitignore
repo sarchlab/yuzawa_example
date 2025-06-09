@@ -22,3 +22,5 @@ go.work
 ping/sample/multi_ping/multi_ping
 ping/sample/ideal_mem_controller/trace.log
 ping/sample/ideal_mem_controller/ideal_mem_controller
+
+*.sqlite3
