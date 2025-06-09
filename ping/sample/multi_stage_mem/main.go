@@ -9,16 +9,18 @@ import (
 	"github.com/sarchlab/akita/v4/mem/idealmemcontroller"
 	"github.com/sarchlab/akita/v4/mem/mem"
 	"github.com/sarchlab/akita/v4/mem/trace"
-	"github.com/sarchlab/akita/v4/mem/vm/addresstranslator"
+
 	"github.com/sarchlab/akita/v4/sim"
 	"github.com/sarchlab/akita/v4/simulation"
+
+	"github.com/sarchlab/akita/v4/mem/vm/addresstranslator"
 	"github.com/sarchlab/akita/v4/mem/vm/tlb"
 	"github.com/sarchlab/akita/v4/sim/directconnection"
 	"github.com/sarchlab/akita/v4/tracing"
-	"github.com/sarchlab/yuzawa_example/ping/memaccessagent"
-	"github.com/sarchlab/yuzawa_example/ping/rob"
 	"github.com/sarchlab/yuzawa_example/ping/benchmarks/multi_stage_memory"
+	"github.com/sarchlab/yuzawa_example/ping/memaccessagent"
 	"github.com/sarchlab/yuzawa_example/ping/mmu"
+	"github.com/sarchlab/yuzawa_example/ping/rob"
 )
 
 func main() {
@@ -55,6 +57,10 @@ func main() {
 		WithRemotePorts(L2Cache.GetPortByName("Top").AsRemote()).
 		Build("L1Cache")
 	simBuilder.RegisterComponent(L1Cache)
+
+	// for _, p := range L1Cache.Ports() {
+	// 	fmt.Println("L1 port name:", p.Name())
+	// }
 
 	IoMMU := mmu.MakeBuilder().
 		WithEngine(engine).
@@ -145,15 +151,15 @@ func main() {
 	Conn5.PlugIn(L2TLB.GetPortByName("Bottom"))
 	Conn5.PlugIn(IoMMU.GetPortByName("Top"))
 
-	Conn6 := directconnection.MakeBuilder().WithEngine(engine).WithFreq(1 * sim.GHz).Build("Conn9")
+	Conn6 := directconnection.MakeBuilder().WithEngine(engine).WithFreq(1 * sim.GHz).Build("Conn6")
 	Conn6.PlugIn(AT.GetPortByName("Bottom"))
 	Conn6.PlugIn(L1Cache.GetPortByName("Top"))
 
-	Conn7 := directconnection.MakeBuilder().WithEngine(engine).WithFreq(1 * sim.GHz).Build("Conn10")
+	Conn7 := directconnection.MakeBuilder().WithEngine(engine).WithFreq(1 * sim.GHz).Build("Conn7")
 	Conn7.PlugIn(L1Cache.GetPortByName("Bottom"))
 	Conn7.PlugIn(L2Cache.GetPortByName("Top"))
 
-	Conn8 := directconnection.MakeBuilder().WithEngine(engine).WithFreq(1 * sim.GHz).Build("Conn11")
+	Conn8 := directconnection.MakeBuilder().WithEngine(engine).WithFreq(1 * sim.GHz).Build("Conn8")
 	Conn8.PlugIn(L2Cache.GetPortByName("Bottom"))
 	Conn8.PlugIn(MemCtrl.GetPortByName("Top"))
 
