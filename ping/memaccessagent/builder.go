@@ -66,12 +66,12 @@ func (a *MemAccessAgent) randomVirtualAddress() uint64 {
 	return rand.Uint64() % (a.MaxAddress / 4) * 4
 }
 
-func (b Builder) WithLowModule(port sim.Port) Builder {
+func (b *Builder) WithLowModule(port sim.Port) *Builder {
 	b.lowModule = port
 	return b
 }
 
-func (b Builder) Build(name string) *MemAccessAgent {
+func (b *Builder) Build(name string) *MemAccessAgent {
 	agent := NewMemAccessAgent(b.engine)
 
 	agent.TickingComponent = sim.NewTickingComponent(name, b.engine, b.freq, agent)

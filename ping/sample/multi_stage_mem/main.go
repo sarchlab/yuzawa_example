@@ -24,20 +24,15 @@ import (
 )
 
 func main() {
-	// simulation := sim.NewSimulation()
-	// engine := sim.NewParallelEngine()
-	// simulation.RegisterEngine(engine)
-
-	simBuilder := simulation.MakeBuilder().Build()
-	// simulation := simBuilder.Build()
-	engine := simBuilder.GetEngine()
+	s := simulation.MakeBuilder().Build()
+	engine := s.GetEngine()
 
 	MemCtrl := idealmemcontroller.MakeBuilder().
 		WithEngine(engine).
 		WithNewStorage(4 * mem.GB).
 		WithLatency(100).
 		Build("MemCtrl")
-	simBuilder.RegisterComponent(MemCtrl)
+	s.RegisterComponent(MemCtrl)
 
 	L2Cache := writeback.MakeBuilder().
 		WithEngine(engine).
@@ -47,7 +42,7 @@ func main() {
 		WithAddressMapperType("single").
 		WithRemotePorts(MemCtrl.GetPortByName("Top").AsRemote()).
 		Build("L2Cache")
-	simBuilder.RegisterComponent(L2Cache)
+	s.RegisterComponent(L2Cache)
 
 	L1Cache := writethrough.MakeBuilder().
 		WithEngine(engine).
@@ -56,7 +51,7 @@ func main() {
 		WithAddressMapperType("single").
 		WithRemotePorts(L2Cache.GetPortByName("Top").AsRemote()).
 		Build("L1Cache")
-	simBuilder.RegisterComponent(L1Cache)
+	s.RegisterComponent(L1Cache)
 
 	IoMMU := mmu.MakeBuilder().
 		WithEngine(engine).
@@ -65,7 +60,7 @@ func main() {
 		WithMaxNumReqInFlight(16).
 		WithPageWalkingLatency(10).
 		Build("IoMMU")
-	simBuilder.RegisterComponent(IoMMU)
+	s.RegisterComponent(IoMMU)
 
 	L2TLB := tlb.MakeBuilder().
 		WithEngine(engine).
@@ -77,7 +72,7 @@ func main() {
 		WithRemotePorts(IoMMU.GetPortByName("Top").AsRemote()).
 		WithAddressMapperType("single").
 		Build("L2TLB")
-	simBuilder.RegisterComponent(L2TLB)
+	s.RegisterComponent(L2TLB)
 
 	TLB := tlb.MakeBuilder().
 		WithEngine(engine).
@@ -89,7 +84,7 @@ func main() {
 		WithRemotePorts(L2TLB.GetPortByName("Top").AsRemote()).
 		WithAddressMapperType("single").
 		Build("TLB")
-	simBuilder.RegisterComponent(TLB)
+	s.RegisterComponent(TLB)
 
 	AT := addresstranslator.MakeBuilder().
 		WithEngine(engine).
@@ -99,7 +94,7 @@ func main() {
 		WithRemotePorts(L1Cache.GetPortByName("Top").AsRemote()).
 		WithAddressMapperType("single").
 		Build("AT")
-	simBuilder.RegisterComponent(AT)
+	s.RegisterComponent(AT)
 
 	ROB := rob.MakeBuilder().
 		WithEngine(engine).
@@ -108,9 +103,7 @@ func main() {
 		WithBufferSize(128).
 		WithBottomUnit(AT.GetPortByName("Top")).
 		Build("ROB")
-	simBuilder.RegisterComponent(ROB)
-
-	// ROB.BottomUnit = AT.GetPortByName("Top")
+	s.RegisterComponent(ROB)
 	// if ROB.BottomUnit == nil {
 	// 	panic("Failed to assign BottomUnit: Top port not found")
 	// }
@@ -123,11 +116,7 @@ func main() {
 		WithEngine(engine).
 		WithLowModule(ROB.GetPortByName("Top")).
 		Build("MemAgent")
-	simBuilder.RegisterComponent(MemAgent)
-	// MemAgent.LowModule = ROB.GetPortByName("Top")
-	// if MemAgent.LowModule == nil {
-	// 	panic("Failed to assign LowModule: Top port not found")
-	// }
+	s.RegisterComponent(MemAgent)
 
 	Conn1 := directconnection.MakeBuilder().WithEngine(engine).WithFreq(1 * sim.GHz).Build("Conn1")
 	Conn1.PlugIn(MemAgent.GetPortByName("Mem"))
@@ -170,7 +159,7 @@ func main() {
 	tracing.CollectTrace(MemCtrl, tracer)
 
 	benchmark := multi_stage_memory.MakeBuilder().
-		WithSimulation(simBuilder).
+		WithSimulation(s).
 		WithNumAccess(100000).
 		WithMaxAddress(1 * mem.GB).
 		Build("Benchmark")

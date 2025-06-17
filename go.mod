@@ -23,8 +23,7 @@ require (
 
 // replace github.com/sarchlab/akita/v4 => ../akita
 
-// replace github.com/sarchlab/yuzawa_example/ping/benchmarks/multi_ping => /Users/sabilaaljannat/yuzawa_example/ping/benchmarks/multi_ping
-
-// replace github.com/sarchlab/yuzawa_example => /Users/sabilaaljannat/yuzawa_example
-
-replace github.com/sarchlab/akita/v4 => ../akita
+// replace (
+// 	github.com/sarchlab/akita/v4 => /Users/sabilaaljannat/akita
+// 	github.com/sarchlab/yuzawa_example => /Users/sabilaaljannat/yuzawa_example
+// )

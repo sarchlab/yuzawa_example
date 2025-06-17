@@ -9,13 +9,7 @@ import (
 )
 
 func main() {
-	// simulation := sim.NewSimulation()
-
-	// engine := sim.NewSerialEngine()
-	// simulation.RegisterEngine(engine)
-
 	simBuilder := simulation.MakeBuilder().Build()
-	// simulation := simBuilder.Build()
 	engine := simBuilder.GetEngine()
 
 	// Create two senders

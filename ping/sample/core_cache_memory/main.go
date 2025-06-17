@@ -18,20 +18,15 @@ import (
 )
 
 func main() {
-	// simulation := sim.NewSimulation()
-	// engine := sim.NewParallelEngine()
-	// simulation.RegisterEngine(engine)
-
-	simBuilder := simulation.MakeBuilder().Build()
-	// simulation := simBuilder.Build()
-	engine := simBuilder.GetEngine()
+	s := simulation.MakeBuilder().Build()
+	engine := s.GetEngine()
 
 	MemCtrl := idealmemcontroller.MakeBuilder().
 		WithEngine(engine).
 		WithNewStorage(4 * mem.GB).
 		WithLatency(100).
 		Build("MemCtrl")
-	simBuilder.RegisterComponent(MemCtrl)
+	s.RegisterComponent(MemCtrl)
 
 	L2Cache := writeback.MakeBuilder().
 		WithEngine(engine).
@@ -41,7 +36,7 @@ func main() {
 		WithAddressMapperType("single").
 		WithRemotePorts(MemCtrl.GetPortByName("Top").AsRemote()).
 		Build("L2Cache")
-	simBuilder.RegisterComponent(L2Cache)
+	s.RegisterComponent(L2Cache)
 
 	L1Cache := writethrough.MakeBuilder().
 		WithEngine(engine).
@@ -50,7 +45,7 @@ func main() {
 		WithAddressMapperType("single").
 		WithRemotePorts(L2Cache.GetPortByName("Top").AsRemote()).
 		Build("L1Cache")
-	simBuilder.RegisterComponent(L1Cache)
+	s.RegisterComponent(L1Cache)
 
 	MemAgent := memaccessagent.MakeBuilder().
 		WithFreq(1 * sim.GHz).
@@ -58,13 +53,9 @@ func main() {
 		WithWriteLeft(100000).
 		WithReadLeft(100000).
 		WithEngine(engine).
+		WithLowModule(L1Cache.GetPortByName("Top")).
 		Build("MemAgent")
-	simBuilder.RegisterComponent(MemAgent)
-
-	MemAgent.LowModule = L1Cache.GetPortByName("Top")
-	if MemAgent.LowModule == nil {
-		panic("Failed to assign LowModule: Top port not found")
-	}
+	s.RegisterComponent(MemAgent)
 
 	Conn1 := directconnection.MakeBuilder().WithEngine(engine).WithFreq(1 * sim.GHz).Build("Conn1")
 	Conn1.PlugIn(MemAgent.GetPortByName("Mem"))
@@ -87,7 +78,7 @@ func main() {
 	tracing.CollectTrace(MemCtrl, tracer)
 
 	benchmark := ideal_mem_controller.MakeBuilder().
-		WithSimulation(simBuilder).
+		WithSimulation(s).
 		WithNumAccess(100000).
 		WithMaxAddress(1 * mem.GB).
 		Build("Benchmark")

@@ -27,25 +27,8 @@ func main() {
 	rand.New(rand.NewSource(seed))
 	log.Printf("Seed: %d\n", seed)
 
-	// Create simulation and engine
-	// simulation := sim.NewSimulation()
-	// engine := sim.NewParallelEngine()
-	// simulation.RegisterEngine(engine)
-
-	simBuilder := simulation.MakeBuilder().Build()
-	// simulation := simBuilder.Build()
-	engine := simBuilder.GetEngine()
-
-	// Instantiate MemAccessAgent using builder
-	agent := memaccessagent.MakeBuilder().
-		WithEngine(engine).
-		WithName("MemAgent").
-		WithFreq(1 * sim.GHz).
-		WithMaxAddress(1 * mem.GB).
-		WithWriteLeft(100000).
-		WithReadLeft(100000).
-		Build("MemAgent")
-	simBuilder.RegisterComponent(agent)
+	s := simulation.MakeBuilder().Build()
+	engine := s.GetEngine()
 
 	// Create IdealMemoryController
 	idealmemcontroller := idealmemcontroller.MakeBuilder().
@@ -53,18 +36,18 @@ func main() {
 		WithNewStorage(4 * mem.GB).
 		WithLatency(100).
 		Build("IdealMemoryController")
-	simBuilder.RegisterComponent(idealmemcontroller)
+	s.RegisterComponent(idealmemcontroller)
 
-	topPort := idealmemcontroller.GetPortByName("Top")
-	if topPort == nil {
-		panic("Error: IdealMemoryController GetPortByName('Top') returned nil")
-	}
-
-	// Assign LowModule for MemAccessAgent
-	agent.LowModule = topPort
-	if agent.LowModule == nil {
-		panic("Failed to assign LowModule: Port does not exist")
-	}
+	// Instantiate MemAccessAgent using builder
+	MemAgent := memaccessagent.MakeBuilder().
+		WithEngine(engine).
+		WithFreq(1 * sim.GHz).
+		WithMaxAddress(1 * mem.GB).
+		WithWriteLeft(100000).
+		WithReadLeft(100000).
+		WithLowModule(idealmemcontroller.GetPortByName("Top")).
+		Build("MemAgent")
+	s.RegisterComponent(MemAgent)
 
 	// Connect ports
 	conn := directconnection.MakeBuilder().
@@ -72,13 +55,7 @@ func main() {
 		WithFreq(1 * sim.GHz).
 		Build("Conn")
 
-	// Ensure agent MemPort exists
-	agentPort := agent.GetPortByName("Mem")
-	if agentPort == nil {
-		panic("Error: MemPort does not exist")
-	}
-
-	conn.PlugIn(agent.GetPortByName("Mem"))
+	conn.PlugIn(MemAgent.GetPortByName("Mem"))
 	conn.PlugIn(idealmemcontroller.GetPortByName("Top"))
 
 	// Optional tracing
@@ -92,7 +69,7 @@ func main() {
 
 	// Run benchmark
 	benchmark := ideal_mem_controller.MakeBuilder().
-		WithSimulation(simBuilder).
+		WithSimulation(s).
 		WithNumAccess(100000).
 		WithMaxAddress(1 * mem.GB).
 		Build("Benchmark")
