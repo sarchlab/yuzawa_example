@@ -12,6 +12,7 @@ type Builder struct {
 	freq           sim.Freq
 	numReqPerCycle int
 	bufferSize     int
+	bottomUnit     sim.Port
 }
 
 // MakeBuilder creates a builder with default parameters.
@@ -48,6 +49,11 @@ func (b Builder) WithBufferSize(n int) Builder {
 	return b
 }
 
+func (b Builder) WithBottomUnit(port sim.Port) Builder { 
+    b.bottomUnit = port
+    return b
+}
+
 // Build creates a ReorderBuffer with the given parameters.
 func (b Builder) Build(name string) *ReorderBuffer {
 	rb := &ReorderBuffer{}
@@ -62,6 +68,10 @@ func (b Builder) Build(name string) *ReorderBuffer {
 	rb.numReqPerCycle = b.numReqPerCycle
 
 	b.createPorts(name, rb)
+
+	if b.bottomUnit != nil {           
+		rb.bottomUnit = b.bottomUnit
+	}
 
 	return rb
 }

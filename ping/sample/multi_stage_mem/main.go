@@ -58,10 +58,6 @@ func main() {
 		Build("L1Cache")
 	simBuilder.RegisterComponent(L1Cache)
 
-	// for _, p := range L1Cache.Ports() {
-	// 	fmt.Println("L1 port name:", p.Name())
-	// }
-
 	IoMMU := mmu.MakeBuilder().
 		WithEngine(engine).
 		WithFreq(1 * sim.GHz).
@@ -110,13 +106,14 @@ func main() {
 		WithFreq(1 * sim.GHz).
 		WithNumReqPerCycle(4).
 		WithBufferSize(128).
+		WithBottomUnit(AT.GetPortByName("Top")).
 		Build("ROB")
 	simBuilder.RegisterComponent(ROB)
 
-	ROB.BottomUnit = AT.GetPortByName("Top")
-	if ROB.BottomUnit == nil {
-		panic("Failed to assign BottomUnit: Top port not found")
-	}
+	// ROB.BottomUnit = AT.GetPortByName("Top")
+	// if ROB.BottomUnit == nil {
+	// 	panic("Failed to assign BottomUnit: Top port not found")
+	// }
 
 	MemAgent := memaccessagent.MakeBuilder().
 		WithFreq(1 * sim.GHz).
@@ -124,12 +121,13 @@ func main() {
 		WithWriteLeft(100000).
 		WithReadLeft(100000).
 		WithEngine(engine).
+		WithLowModule(ROB.GetPortByName("Top")).
 		Build("MemAgent")
 	simBuilder.RegisterComponent(MemAgent)
-	MemAgent.LowModule = ROB.GetPortByName("Top")
-	if MemAgent.LowModule == nil {
-		panic("Failed to assign LowModule: Top port not found")
-	}
+	// MemAgent.LowModule = ROB.GetPortByName("Top")
+	// if MemAgent.LowModule == nil {
+	// 	panic("Failed to assign LowModule: Top port not found")
+	// }
 
 	Conn1 := directconnection.MakeBuilder().WithEngine(engine).WithFreq(1 * sim.GHz).Build("Conn1")
 	Conn1.PlugIn(MemAgent.GetPortByName("Mem"))

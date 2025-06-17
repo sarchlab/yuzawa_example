@@ -14,6 +14,7 @@ type Builder struct {
 	writeLeft  int
 	readLeft   int
 	useVirtualAddress bool
+	lowModule  sim.Port
 }
 
 func MakeBuilder() *Builder {
@@ -65,7 +66,12 @@ func (a *MemAccessAgent) randomVirtualAddress() uint64 {
 	return rand.Uint64() % (a.MaxAddress / 4) * 4
 }
 
-func (b *Builder) Build(name string) *MemAccessAgent {
+func (b Builder) WithLowModule(port sim.Port) Builder {
+	b.lowModule = port
+	return b
+}
+
+func (b Builder) Build(name string) *MemAccessAgent {
 	agent := NewMemAccessAgent(b.engine)
 
 	agent.TickingComponent = sim.NewTickingComponent(name, b.engine, b.freq, agent)
@@ -77,6 +83,10 @@ func (b *Builder) Build(name string) *MemAccessAgent {
 
 	agent.memPort = sim.NewPort(agent, 1, 1, name+".Mem")
 	agent.AddPort("Mem", agent.memPort)
+
+	if b.lowModule != nil {               
+		agent.LowModule = b.lowModule
+	}
 
 	return agent
 }

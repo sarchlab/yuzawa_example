@@ -23,7 +23,7 @@ type ReorderBuffer struct {
 	bottomPort  sim.Port
 	controlPort sim.Port
 
-	BottomUnit sim.Port
+	bottomUnit sim.Port
 
 	bufferSize     int
 	numReqPerCycle int
@@ -243,16 +243,19 @@ func (b *ReorderBuffer) duplicateReq(req mem.AccessReq) mem.AccessReq {
 }
 
 func (b *ReorderBuffer) duplicateReadReq(req *mem.ReadReq) *mem.ReadReq {
+	if b.bottomUnit == nil {
+		panic("BottomUnit is not assigned")
+	}
 	return mem.ReadReqBuilder{}.
 		WithAddress(req.Address).
 		WithByteSize(req.AccessByteSize).
 		WithPID(req.PID).
-		WithDst(b.BottomUnit.AsRemote()).
+		WithDst(b.bottomUnit.AsRemote()).
 		Build()
 }
 
 func (b *ReorderBuffer) duplicateWriteReq(req *mem.WriteReq) *mem.WriteReq {
-	if b.BottomUnit == nil {
+	if b.bottomUnit == nil {
 		panic("BottomUnit is not assigned")
 	}
 	return mem.WriteReqBuilder{}.
@@ -260,7 +263,7 @@ func (b *ReorderBuffer) duplicateWriteReq(req *mem.WriteReq) *mem.WriteReq {
 		WithPID(req.PID).
 		WithData(req.Data).
 		WithDirtyMask(req.DirtyMask).
-		WithDst(b.BottomUnit.AsRemote()).
+		WithDst(b.bottomUnit.AsRemote()).
 		Build()
 }
 
