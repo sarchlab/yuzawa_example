@@ -1,0 +1,18 @@
+{
+    "name": "ComputeUnit",
+    "description": "Minimal single CU",
+    "ports": [
+      { "name": "Top" },
+      { "name": "Inst" },
+      { "name": "Scalar" },
+      { "name": "Vector" }
+    ],
+    "parameters": [
+      {
+        "name": "Freq",
+        "type": "float",
+        "unit": "GHz",
+        "default": 1
+      }
+    ]
+}

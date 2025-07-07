@@ -1,0 +1,16 @@
+{
+    "name": "Driver",
+    "description": "Very-thin host driver that injects launch requests toward the Command-Processor (CP)",
+    "ports": [
+      { "name": "Mem" }
+    ],
+    "parameters": [
+      {
+        "name": "Freq",
+        "type": "float",
+        "unit": "GHz",
+        "default": 1
+      }
+    ]
+  }
+  

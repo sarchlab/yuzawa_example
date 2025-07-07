@@ -1,0 +1,17 @@
+{
+    "name": "CommandProcessor",
+    "description": "Minimal CP",
+    "ports": [
+      { "name": "Top" },
+      { "name": "RequestPort" },
+      { "name": "ResponsePort" }
+    ],
+    "parameters": [
+      {
+        "name": "Freq",
+        "type": "float",
+        "unit": "GHz",
+        "default": 1
+      }
+    ]
+}

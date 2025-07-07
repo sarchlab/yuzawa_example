@@ -32,33 +32,6 @@ type MemAccessAgent struct {
 	UseVirtualAddress bool
 }
 
-func (a *MemAccessAgent) checkReadResult(
-	read *mem.ReadReq,
-	dataReady *mem.DataReadyRsp,
-) {
-	found := false
-
-	var (
-		i     int
-		value uint32
-	)
-
-	result := bytesToUint32(dataReady.Data)
-
-	for i, value = range a.KnownMemValue[read.Address] {
-		if value == result {
-			found = true
-			break
-		}
-	}
-
-	if found {
-		a.KnownMemValue[read.Address] = a.KnownMemValue[read.Address][i:]
-	} else {
-		log.Panicf("Mismatch when read 0x%X", read.Address)
-	}
-}
-
 // Tick updates the states of the agent and issues new read and write requests.
 func (a *MemAccessAgent) Tick() bool {
 	madeProgress := false
@@ -211,16 +184,6 @@ func uint32ToBytes(data uint32) []byte {
 	binary.LittleEndian.PutUint32(bytes, data)
 
 	return bytes
-}
-
-func bytesToUint32(data []byte) uint32 {
-	a := uint32(0)
-	a += uint32(data[0])
-	a += uint32(data[1]) << 8
-	a += uint32(data[2]) << 16
-	a += uint32(data[3]) << 24
-
-	return a
 }
 
 func (a *MemAccessAgent) doWrite() bool {
