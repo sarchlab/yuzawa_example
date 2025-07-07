@@ -8,6 +8,7 @@ import (
 	"github.com/sarchlab/akita/v4/mem/cache/writethrough"
 	"github.com/sarchlab/akita/v4/mem/idealmemcontroller"
 	"github.com/sarchlab/akita/v4/mem/mem"
+
 	// "github.com/sarchlab/akita/v4/mem/trace"
 
 	"github.com/sarchlab/akita/v4/sim"
@@ -16,12 +17,14 @@ import (
 	"github.com/sarchlab/akita/v4/mem/vm/addresstranslator"
 	"github.com/sarchlab/akita/v4/mem/vm/tlb"
 	"github.com/sarchlab/akita/v4/sim/directconnection"
+
 	// "github.com/sarchlab/akita/v4/tracing"
+	"github.com/sarchlab/yuzawa_example/cp"
+	"github.com/sarchlab/yuzawa_example/cu"
 	"github.com/sarchlab/yuzawa_example/ping/benchmarks/relu"
 	"github.com/sarchlab/yuzawa_example/ping/mmu"
 	"github.com/sarchlab/yuzawa_example/ping/rob"
-	"github.com/sarchlab/yuzawa_example/cp"
-	"github.com/sarchlab/yuzawa_example/cu"
+
 	// "github.com/sarchlab/yuzawa_example/driver"
 	"github.com/sarchlab/mgpusim/v4/amd/driver"
 	// "github.com/sarchlab/mgpusim/v4/amd/timing/cp"
@@ -205,8 +208,16 @@ func main() {
 	Driver := driver.MakeBuilder().
 		WithEngine(engine).
 		WithFreq(1 * sim.GHz).
+		WithLog2PageSize(12).
 		Build("Driver")
 	s.RegisterComponent(Driver)
+	Driver.RegisterGPU(
+		CP.GetPortByName("Top"),
+		driver.DeviceProperties{
+			CUCount:  1,
+			DRAMSize: 4 * mem.GB,
+		},
+	)
 
 	Conn1 := directconnection.MakeBuilder().WithEngine(engine).WithFreq(1 * sim.GHz).Build("Conn1")
 	Conn1.PlugIn(Driver.GetPortByName("GPU"))

@@ -3,11 +3,12 @@ package relu
 import (
 	"github.com/sarchlab/akita/v4/simulation"
 	"github.com/sarchlab/mgpusim/v4/amd/benchmarks/dnn/layer_benchmarks/relu"
-
+	"github.com/sarchlab/mgpusim/v4/amd/driver"
 )
 
 type Builder struct {
-	sim *simulation.Simulation
+	sim    *simulation.Simulation
+	length int
 }
 
 // MakeBuilder creates a builder with default parameters.
@@ -21,13 +22,25 @@ func (b *Builder) WithSimulation(sim *simulation.Simulation) *Builder {
 	return b
 }
 
+// WithLength sets the number of element to perform ReLU operation on.
+func (b *Builder) WithLength(l int) *Builder {
+	b.length = l
+	return b
+}
+
 // Build creates a ReLU benchmark with the given parameters.
 func (b *Builder) Build(name string) *Benchmark {
-	r := relu.NewBenchmark(nil)
+	driver := b.sim.GetComponentByName("Driver").(*driver.Driver)
 
-	return &Benchmark{
+	r := relu.NewBenchmark(driver)
+	r.Length = b.length
+	r.SelectGPU([]int{1})
+
+	bm := &Benchmark{
 		name: name,
-		sim: b.sim,
+		sim:  b.sim,
 		relu: r,
 	}
+
+	return bm
 }
