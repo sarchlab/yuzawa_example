@@ -2,14 +2,15 @@ package main
 
 import (
 	"log"
-	// "os"
+	"os"
 
 	"github.com/sarchlab/akita/v4/mem/cache/writeback"
 	"github.com/sarchlab/akita/v4/mem/cache/writethrough"
 	"github.com/sarchlab/akita/v4/mem/idealmemcontroller"
 	"github.com/sarchlab/akita/v4/mem/mem"
+	"github.com/sarchlab/akita/v4/mem/vm"
 
-	// "github.com/sarchlab/akita/v4/mem/trace"
+	"github.com/sarchlab/akita/v4/mem/trace"
 
 	"github.com/sarchlab/akita/v4/sim"
 	"github.com/sarchlab/akita/v4/simulation"
@@ -18,17 +19,14 @@ import (
 	"github.com/sarchlab/akita/v4/mem/vm/tlb"
 	"github.com/sarchlab/akita/v4/sim/directconnection"
 
-	// "github.com/sarchlab/akita/v4/tracing"
-	"github.com/sarchlab/yuzawa_example/cp"
-	"github.com/sarchlab/yuzawa_example/cu"
+	"github.com/sarchlab/akita/v4/tracing"
 	"github.com/sarchlab/yuzawa_example/ping/benchmarks/relu"
 	"github.com/sarchlab/yuzawa_example/ping/mmu"
 	"github.com/sarchlab/yuzawa_example/ping/rob"
 
-	// "github.com/sarchlab/yuzawa_example/driver"
 	"github.com/sarchlab/mgpusim/v4/amd/driver"
-	// "github.com/sarchlab/mgpusim/v4/amd/timing/cp"
-	// "github.com/sarchlab/mgpusim/v4/amd/timing/cu"
+	"github.com/sarchlab/mgpusim/v4/amd/timing/cp"
+	"github.com/sarchlab/mgpusim/v4/amd/timing/cu"
 )
 
 func main() {
@@ -194,25 +192,31 @@ func main() {
 	s.RegisterComponent(IROB)
 
 	CU := cu.MakeBuilder().
-		WithSimulation(s).
+		WithEngine(engine).
 		WithFreq(1 * sim.GHz).
 		Build("CU")
 	s.RegisterComponent(CU)
 
 	CP := cp.MakeBuilder().
-		WithSimulation(s).
+		WithEngine(engine).
 		WithFreq(1 * sim.GHz).
 		Build("CP")
 	s.RegisterComponent(CP)
+
+	pt := vm.NewPageTable(12)
 
 	Driver := driver.MakeBuilder().
 		WithEngine(engine).
 		WithFreq(1 * sim.GHz).
 		WithLog2PageSize(12).
+		WithPageTable(pt).
+		WithGlobalStorage(mem.NewStorage(4 * mem.GB)).
+		WithMagicMemoryCopyMiddleware().
 		Build("Driver")
 	s.RegisterComponent(Driver)
+
 	Driver.RegisterGPU(
-		CP.GetPortByName("Top"),
+		CP.GetPortByName("ToDriver"),
 		driver.DeviceProperties{
 			CUCount:  1,
 			DRAMSize: 4 * mem.GB,
@@ -221,14 +225,14 @@ func main() {
 
 	Conn1 := directconnection.MakeBuilder().WithEngine(engine).WithFreq(1 * sim.GHz).Build("Conn1")
 	Conn1.PlugIn(Driver.GetPortByName("GPU"))
-	Conn1.PlugIn(CP.GetPortByName("Top"))
+	Conn1.PlugIn(CP.GetPortByName("ToDriver"))
 
 	Conn2 := directconnection.MakeBuilder().WithEngine(engine).WithFreq(1 * sim.GHz).Build("Conn2")
-	Conn2.PlugIn(CP.GetPortByName("RequestPort"))
-	Conn2.PlugIn(CU.GetPortByName("Top"))
+	Conn2.PlugIn(CP.GetPortByName("ToCUs"))
+	Conn2.PlugIn(CU.GetPortByName("Ctrl"))
 
 	Conn3 := directconnection.MakeBuilder().WithEngine(engine).WithFreq(1 * sim.GHz).Build("Conn3")
-	Conn3.PlugIn(CU.GetPortByName("VectorPort"))
+	Conn3.PlugIn(CU.GetPortByName("VectorMem"))
 	Conn3.PlugIn(VROB.GetPortByName("Top"))
 
 	Conn4 := directconnection.MakeBuilder().WithEngine(engine).WithFreq(1 * sim.GHz).Build("Conn4")
@@ -239,9 +243,9 @@ func main() {
 	Conn5.PlugIn(VAT.GetPortByName("Translation"))
 	Conn5.PlugIn(VTLB.GetPortByName("Top"))
 
-	Conn6 := directconnection.MakeBuilder().WithEngine(engine).WithFreq(1 * sim.GHz).Build("Conn6")
-	Conn6.PlugIn(VTLB.GetPortByName("Bottom"))
-	Conn6.PlugIn(L2TLB.GetPortByName("Top"))
+	// Conn6 := directconnection.MakeBuilder().WithEngine(engine).WithFreq(1 * sim.GHz).Build("Conn6")
+	// Conn6.PlugIn(VTLB.GetPortByName("Bottom"))
+	// Conn6.PlugIn(L2TLB.GetPortByName("Top"))
 
 	Conn7 := directconnection.MakeBuilder().WithEngine(engine).WithFreq(1 * sim.GHz).Build("Conn7")
 	Conn7.PlugIn(L2TLB.GetPortByName("Bottom"))
@@ -260,7 +264,7 @@ func main() {
 	Conn10.PlugIn(MemCtrl.GetPortByName("Top"))
 
 	Conn11 := directconnection.MakeBuilder().WithEngine(engine).WithFreq(1 * sim.GHz).Build("Conn11")
-	Conn11.PlugIn(CU.GetPortByName("ScalarPort"))
+	Conn11.PlugIn(CU.GetPortByName("ScalarMem"))
 	Conn11.PlugIn(SROB.GetPortByName("Top"))
 
 	Conn12 := directconnection.MakeBuilder().WithEngine(engine).WithFreq(1 * sim.GHz).Build("Conn12")
@@ -271,12 +275,16 @@ func main() {
 	Conn13.PlugIn(SAT.GetPortByName("Translation"))
 	Conn13.PlugIn(STLB.GetPortByName("Top"))
 
+	Conn14 := directconnection.MakeBuilder().WithEngine(engine).WithFreq(1 * sim.GHz).Build("Conn14")
+	Conn14.PlugIn(SAT.GetPortByName("Bottom"))
+	Conn14.PlugIn(L1SCache.GetPortByName("Top"))
+
 	// Conn14 := directconnection.MakeBuilder().WithEngine(engine).WithFreq(1 * sim.GHz).Build("Conn14")
 	// Conn14.PlugIn(STLB.GetPortByName("Bottom"))
 	// Conn14.PlugIn(L2TLB.GetPortByName("Top"))
 
 	Conn15 := directconnection.MakeBuilder().WithEngine(engine).WithFreq(1 * sim.GHz).Build("Conn15")
-	Conn15.PlugIn(CU.GetPortByName("InstPort"))
+	Conn15.PlugIn(CU.GetPortByName("InstMem"))
 	Conn15.PlugIn(IROB.GetPortByName("Top"))
 
 	Conn16 := directconnection.MakeBuilder().WithEngine(engine).WithFreq(1 * sim.GHz).Build("Conn16")
@@ -287,22 +295,50 @@ func main() {
 	Conn17.PlugIn(IAT.GetPortByName("Translation"))
 	Conn17.PlugIn(ITLB.GetPortByName("Top"))
 
-	// Conn18 := directconnection.MakeBuilder().WithEngine(engine).WithFreq(1 * sim.GHz).Build("Conn18")
-	// Conn18.PlugIn(ITLB.GetPortByName("Bottom"))
-	// Conn18.PlugIn(L2TLB.GetPortByName("Top"))
+	Conn18 := directconnection.MakeBuilder().WithEngine(engine).WithFreq(1 * sim.GHz).Build("Conn18")
+	Conn18.PlugIn(IAT.GetPortByName("Bottom"))
+	Conn18.PlugIn(L1ICache.GetPortByName("Top"))
 
-	// traceFile, err := os.Create("trace.log")
-	// if err != nil {
-	// 	panic("Error: Failed to create trace file")
-	// }
-	// logger := log.New(traceFile, "", 0)
-	// tracer := trace.NewTracer(logger, engine)
-	// tracing.CollectTrace(MemCtrl, tracer)
+	Conn19 := directconnection.MakeBuilder().WithEngine(engine).WithFreq(1 * sim.GHz).Build("Conn19")
+	Conn19.PlugIn(VTLB.GetPortByName("Bottom"))
+	Conn19.PlugIn(STLB.GetPortByName("Bottom"))
+	Conn19.PlugIn(ITLB.GetPortByName("Bottom"))
+	Conn19.PlugIn(L2TLB.GetPortByName("Top"))
+
+	Conn20 := directconnection.MakeBuilder().WithEngine(engine).WithFreq(1 * sim.GHz).Build("Conn20")
+	Conn20.PlugIn(CP.GetPortByName("ToTLBs"))
+	Conn20.PlugIn(VTLB.GetPortByName("Control"))
+	Conn20.PlugIn(STLB.GetPortByName("Control"))
+	Conn20.PlugIn(ITLB.GetPortByName("Control"))
+
+	Conn21 := directconnection.MakeBuilder().WithEngine(engine).WithFreq(1 * sim.GHz).Build("Conn21")
+	Conn21.PlugIn(CP.GetPortByName("ToAddressTranslators"))
+	Conn21.PlugIn(VAT.GetPortByName("Control"))
+	Conn21.PlugIn(SAT.GetPortByName("Control"))
+	Conn21.PlugIn(IAT.GetPortByName("Control"))
+
+	Conn22 := directconnection.MakeBuilder().WithEngine(engine).WithFreq(1 * sim.GHz).Build("Conn22")
+	Conn22.PlugIn(CP.GetPortByName("ToCaches"))
+	Conn22.PlugIn(L1VCache.GetPortByName("Control"))
+	Conn22.PlugIn(L1SCache.GetPortByName("Control"))
+	Conn22.PlugIn(L1ICache.GetPortByName("Control"))
+	Conn22.PlugIn(L2Cache.GetPortByName("Control"))
+
+
+	traceFile, err := os.Create("trace.log")
+	if err != nil {
+		panic("Error: Failed to create trace file")
+	}
+	logger := log.New(traceFile, "", 0)
+	tracer := trace.NewTracer(logger, engine)
+	tracing.CollectTrace(MemCtrl, tracer)
 
 	benchmark := relu.MakeBuilder().
 		WithSimulation(s).
+		WithLength(1 << 20).
 		Build("Benchmark")
 	benchmark.Run()
+	Driver.Run()
 
 	s.Terminate()
 	log.Println("Simulation completed successfully.")
