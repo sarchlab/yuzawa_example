@@ -5,8 +5,8 @@ go 1.24
 toolchain go1.24.0
 
 require (
-	github.com/sarchlab/akita/v4 v4.5.0
-	github.com/sarchlab/mgpusim/v4 v4.1.2
+	github.com/sarchlab/akita/v4 v4.5.1
+	github.com/sarchlab/mgpusim/v4 v4.1.3
 )
 
 require (

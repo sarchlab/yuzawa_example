@@ -25,10 +25,10 @@ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZb
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/rs/xid v1.6.0 h1:fV591PaemRlL6JfRxGDEPl69wICngIQ3shQtzfy2gxU=
 github.com/rs/xid v1.6.0/go.mod h1:7XoLgs4eV+QndskICGsho+ADou8ySMSjJKDIan90Nz0=
-github.com/sarchlab/akita/v4 v4.5.0 h1:5aGiN5T64eLZTZP/SgBPB76NGJLwUQ8S8AAsTLHhdsI=
-github.com/sarchlab/akita/v4 v4.5.0/go.mod h1:zMgHehd7qkD9SjQ6MaDbgAVo2bMVvDbj0xn+c+CL39E=
-github.com/sarchlab/mgpusim/v4 v4.1.2 h1:lRZwUmVWbHWzXtw9963mWLsSztf6QVI77OCsJcXI8VA=
-github.com/sarchlab/mgpusim/v4 v4.1.2/go.mod h1:FITf9gt4AdWc0Kjn9HZah9ho/r4jqazE5ROozKPFh84=
+github.com/sarchlab/akita/v4 v4.5.1 h1:wPQxeZFPWAUo4THxQEf//Qf1wWi+7iV66xh3h6c7D5A=
+github.com/sarchlab/akita/v4 v4.5.1/go.mod h1:zMgHehd7qkD9SjQ6MaDbgAVo2bMVvDbj0xn+c+CL39E=
+github.com/sarchlab/mgpusim/v4 v4.1.3 h1:T/Ig7kLKSdOb9jes6HDB3o0EFBNuj6pxbDDFaKckHtQ=
+github.com/sarchlab/mgpusim/v4 v4.1.3/go.mod h1:kYdw/S+wp8RzQ/erqYgoqXdZzwQqYf5yumvmKYjy5Ws=
 github.com/shirou/gopsutil v3.21.11+incompatible h1:+1+c1VGhc88SSonWP6foOcLhvnKlUeu/erjjvaPEYiI=
 github.com/shirou/gopsutil v3.21.11+incompatible/go.mod h1:5b4v6he4MtMOwMlS0TUMTu2PcXUg8+E1lC7eC3UO/RA=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=

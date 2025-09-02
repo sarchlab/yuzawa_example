@@ -1,22 +1,27 @@
 package relu
 
 import (
+	"log"
+
 	"github.com/sarchlab/akita/v4/simulation"
 	"github.com/sarchlab/mgpusim/v4/amd/benchmarks/dnn/layer_benchmarks/relu"
-	"github.com/sarchlab/mgpusim/v4/amd/driver"
 )
 
 type Benchmark struct {
 	name string
-	sim *simulation.Simulation
+	sim  *simulation.Simulation
 	relu *relu.Benchmark
 }
 
 func (b *Benchmark) Run() {
-	driver := b.sim.GetComponentByName("Driver").(*driver.Driver)
-
-	driver.Run()
+	// Don't call driver.Run() and driver.Terminate() here - handled in main.go
+	log.Printf("Running ReLU benchmark with length: %d", b.relu.Length)
+	log.Println("About to call underlying MGPUSim ReLU benchmark...")
 	b.relu.Run()
+	log.Println("Underlying MGPUSim ReLU benchmark completed")
+}
 
-	driver.Terminate()
+// GetUnderlyingBenchmark returns the underlying MGPUSim benchmark
+func (b *Benchmark) GetUnderlyingBenchmark() *relu.Benchmark {
+	return b.relu
 }

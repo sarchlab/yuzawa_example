@@ -5,7 +5,7 @@ go 1.24.0
 require (
 	github.com/sarchlab/akita/v4 v4.5.1
 	github.com/sarchlab/mgpusim/v4 v4.1.3
-	github.com/sarchlab/yuzawa_example v0.0.0-20250617180707-b7c163dec1be
+	github.com/sarchlab/yuzawa_example v0.0.0-20250714172439-b5f5f4cad99e
 )
 
 require (
