@@ -213,20 +213,19 @@ func main() {
 		WithEngine(engine).
 		WithFreq(1 * sim.GHz).
 		WithVGPRCount([]int{32768, 32768, 32768, 32768}).
+		WithInstMem(IROB.GetPortByName("Top")).
+		WithScalarMem(SROB.GetPortByName("Top")).
+		WithVectorMemModules(&mem.SinglePortMapper{
+			Port: VROB.GetPortByName("Top").AsRemote(),
+		}).
+		WithSIMDCount(4).
 		Build("CU")
 	s.RegisterComponent(CU)
-
-	CU.ScalarMem = SROB.GetPortByName("Top")
-
-	CU.InstMem = IROB.GetPortByName("Top")
-
-	CU.VectorMemModules = &mem.SinglePortMapper{
-		Port: VROB.GetPortByName("Top").AsRemote(),
-	}
 
 	CP := cp.MakeBuilder().
 		WithEngine(engine).
 		WithFreq(1 * sim.GHz).
+		WithCU(CU).
 		Build("CP")
 	s.RegisterComponent(CP)
 
@@ -240,13 +239,12 @@ func main() {
 		Build("Driver")
 	s.RegisterComponent(Driver)
 
-	CP.Driver = Driver.GetPortByName("GPU")
-
 	Driver.RegisterGPU(CP.GetPortByName("ToDriver"), driver.DeviceProperties{
 		CUCount:  1,
 		DRAMSize: 4 * mem.GB,
 	})
 
+	// Configure CP after Driver is built
 	CP.Driver = Driver.GetPortByName("GPU")
 
 	ConnGPU1 := directconnection.MakeBuilder().
@@ -255,8 +253,6 @@ func main() {
 		Build("ConnGPU1")
 	ConnGPU1.PlugIn(CP.GetPortByName("ToDriver"))
 	ConnGPU1.PlugIn(Driver.GetPortByName("GPU"))
-
-	CP.RegisterCU(CU)
 
 	ConnCPToCU := directconnection.MakeBuilder().
 		WithEngine(engine).
