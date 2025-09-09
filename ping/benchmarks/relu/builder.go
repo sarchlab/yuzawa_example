@@ -34,7 +34,7 @@ func (b *Builder) Build(name string) *Benchmark {
 
 	r := relu.NewBenchmark(driver)
 	r.Length = b.length
-	r.SelectGPU([]int{1}) // Use GPU index 1 (MGPUSim driver expects IDs starting from 1)
+	r.SelectGPU([]int{1})
 
 	bm := &Benchmark{
 		name: name,
