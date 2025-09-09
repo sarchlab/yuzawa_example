@@ -28,3 +28,8 @@ require (
 // 	github.com/sarchlab/akita/v4 => /Users/sabilaaljannat/akita
 // 	github.com/sarchlab/yuzawa_example => /Users/sabilaaljannat/yuzawa_example
 // )
+
+replace (
+	github.com/sarchlab/akita/v4 => /Users/sabilaaljannat/akita
+	github.com/sarchlab/mgpusim/v4 => /Users/sabilaaljannat/mgpusim
+)
