@@ -1,3 +1,4 @@
 *.sqlite3
 trace.log
 main
+core_cache_memory

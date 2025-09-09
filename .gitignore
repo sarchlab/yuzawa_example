@@ -22,5 +22,26 @@ go.work
 ping/sample/multi_ping/multi_ping
 ping/sample/ideal_mem_controller/trace.log
 ping/sample/ideal_mem_controller/ideal_mem_controller
+ping/sample/core_cache_memory/main
+ping/sample/core_cache_memory/core_cache_memory
+ping/sample/multi_stage_mem/main
+ping/sample/multi_stage_mem
+ping/sample/single_core/single_core
+ping/sample/single_ping/single_ping
+ping/sample/multi_ping/multi_ping
+
+
 
 *.sqlite3
+.DS_Store
+trace.log
+*.binary
+.vscode/
+
+ping/sample/*/trace.log
+ping/sample/*/ideal_mem_controller
+ping/sample/*/multi_ping
+ping/sample/*/multi_stage_mem
+ping/sample/*/single_core
+ping/sample/*/core_cache_memory
+ping/sample/*/main
