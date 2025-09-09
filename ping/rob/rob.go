@@ -3,6 +3,7 @@ package rob
 
 import (
 	"container/list"
+	"log"
 
 	"github.com/sarchlab/akita/v4/mem/mem"
 	"github.com/sarchlab/akita/v4/sim"
@@ -38,7 +39,11 @@ func (b *ReorderBuffer) Tick() (madeProgress bool) {
 	madeProgress = b.processControlMsg() || madeProgress
 
 	if !b.isFlushing {
-		madeProgress = b.runPipeline() || madeProgress
+		pipelineProgress := b.runPipeline()
+		if pipelineProgress {
+			log.Printf("VROB %s: runPipeline made progress", b.Name())
+		}
+		madeProgress = pipelineProgress || madeProgress
 	}
 
 	return madeProgress
@@ -144,14 +149,24 @@ func (b *ReorderBuffer) topDown() bool {
 	req := item.(mem.AccessReq)
 	trans := b.createTransaction(req)
 
+	// Debug logging for VROB requests
+	log.Printf("VROB %s: Processing request - Type=%T, Address=0x%x",
+		b.Name(), req, req.GetAddress())
+	if writeReq, ok := req.(*mem.WriteReq); ok {
+		log.Printf("VROB %s: WRITE request data: %v", b.Name(), writeReq.Data)
+	}
+
 	trans.reqToBottom.Meta().Src = b.bottomPort.AsRemote()
 	err := b.bottomPort.Send(trans.reqToBottom)
 	if err != nil {
+		log.Printf("VROB %s: Failed to send request to bottom: %v", b.Name(), err)
 		return false
 	}
 
 	b.addTransaction(trans)
 	b.topPort.RetrieveIncoming()
+
+	log.Printf("VROB %s: Request sent to bottom successfully", b.Name())
 
 	tracing.TraceReqReceive(req, b)
 	tracing.TraceReqInitiate(trans.reqToBottom, b,
