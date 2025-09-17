@@ -3,7 +3,6 @@ package main
 import (
 	"log"
 	"os"
-	"time"
 
 	"github.com/sarchlab/akita/v4/mem/cache/writearound"
 	"github.com/sarchlab/akita/v4/mem/cache/writethrough"
@@ -26,8 +25,6 @@ import (
 )
 
 func main() {
-	log.Printf("Starting main function...")
-
 	s := simulation.MakeBuilder().Build()
 	engine := s.GetEngine()
 
@@ -36,7 +33,7 @@ func main() {
 	MemCtrl := idealmemcontroller.MakeBuilder().
 		WithEngine(engine).
 		WithStorage(sharedStorage).
-		WithLatency(10). // Reduced from 100 to 10 cycles for faster simulation
+		WithLatency(10).
 		Build("MemCtrl")
 	s.RegisterComponent(MemCtrl)
 
@@ -184,30 +181,27 @@ func main() {
 		WithFreq(1 * sim.GHz).
 		WithNumReqPerCycle(4).
 		WithBufferSize(128).
+		WithBottomUnit(VAT.GetPortByName("Top").AsRemote()).
 		Build("VROB")
 	s.RegisterComponent(VROB)
-
-	VROB.BottomUnit = VAT.GetPortByName("Top")
 
 	SROB := rob.MakeBuilder().
 		WithEngine(engine).
 		WithFreq(1 * sim.GHz).
 		WithNumReqPerCycle(4).
 		WithBufferSize(128).
+		WithBottomUnit(SAT.GetPortByName("Top").AsRemote()).
 		Build("SROB")
 	s.RegisterComponent(SROB)
-
-	SROB.BottomUnit = SAT.GetPortByName("Top")
 
 	IROB := rob.MakeBuilder().
 		WithEngine(engine).
 		WithFreq(1 * sim.GHz).
 		WithNumReqPerCycle(4).
 		WithBufferSize(128).
+		WithBottomUnit(IAT.GetPortByName("Top").AsRemote()).
 		Build("IROB")
 	s.RegisterComponent(IROB)
-
-	IROB.BottomUnit = IAT.GetPortByName("Top")
 
 	CU := cu.MakeBuilder().
 		WithEngine(engine).
@@ -222,13 +216,6 @@ func main() {
 		Build("CU")
 	s.RegisterComponent(CU)
 
-	CP := cp.MakeBuilder().
-		WithEngine(engine).
-		WithFreq(1 * sim.GHz).
-		WithCU(CU).
-		Build("CP")
-	s.RegisterComponent(CP)
-
 	Driver := driver.MakeBuilder().
 		WithEngine(engine).
 		WithFreq(1 * sim.GHz).
@@ -239,13 +226,19 @@ func main() {
 		Build("Driver")
 	s.RegisterComponent(Driver)
 
-	Driver.RegisterGPU(CP.GetPortByName("ToDriver"), driver.DeviceProperties{
-		CUCount:  1,
-		DRAMSize: 4 * mem.GB,
-	})
+	CP := cp.MakeBuilder().
+		WithEngine(engine).
+		WithFreq(1 * sim.GHz).
+		WithCU(CU).
+		Build("CP")
+	s.RegisterComponent(CP)
 
-	// Configure CP after Driver is built
-	CP.Driver = Driver.GetPortByName("GPU")
+	// Driver.RegisterGPU(CP.GetPortByName("ToDriver"), driver.DeviceProperties{
+	// 	CUCount:  1,
+	// 	DRAMSize: 4 * mem.GB,
+	// })
+
+	// CP.Driver = Driver.GetPortByName("GPU")
 
 	ConnGPU1 := directconnection.MakeBuilder().
 		WithEngine(engine).
@@ -391,13 +384,6 @@ func main() {
 		WithLength(4).
 		Build("ReLU")
 
-	start := time.Now()
-
-	Driver.Run()
 	benchmark.Run()
-	Driver.Terminate()
 	s.Terminate()
-
-	duration := time.Since(start)
-	log.Printf("Simulation completed in %v", duration)
 }

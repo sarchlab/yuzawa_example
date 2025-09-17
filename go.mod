@@ -3,7 +3,7 @@ module github.com/sarchlab/yuzawa_example
 go 1.25
 
 require (
-	github.com/sarchlab/akita/v4 v4.6.1
+	github.com/sarchlab/akita/v4 v4.7.0
 	github.com/sarchlab/mgpusim/v4 v4.1.3
 )
 
@@ -19,15 +19,11 @@ require (
 	github.com/tklauser/go-sysconf v0.3.15 // indirect
 	github.com/tklauser/numcpus v0.10.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
+	go.uber.org/mock v0.6.0 // indirect
 	golang.org/x/sys v0.35.0 // indirect
 )
 
 // replace github.com/sarchlab/akita/v4 => ../akita
-
-// replace (
-// 	github.com/sarchlab/akita/v4 => /Users/sabilaaljannat/akita
-// 	github.com/sarchlab/yuzawa_example => /Users/sabilaaljannat/yuzawa_example
-// )
 
 replace (
 	github.com/sarchlab/akita/v4 => /Users/sabilaaljannat/akita
