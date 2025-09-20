@@ -4,67 +4,91 @@ import (
 	"log"
 	"os"
 
-	"github.com/sarchlab/akita/v4/mem/cache/writeback"
+	"github.com/sarchlab/akita/v4/mem/cache/writearound"
 	"github.com/sarchlab/akita/v4/mem/cache/writethrough"
 	"github.com/sarchlab/akita/v4/mem/idealmemcontroller"
 	"github.com/sarchlab/akita/v4/mem/mem"
-	"github.com/sarchlab/akita/v4/mem/vm"
-
 	"github.com/sarchlab/akita/v4/mem/trace"
-
-	"github.com/sarchlab/akita/v4/sim"
-	"github.com/sarchlab/akita/v4/simulation"
-
+	"github.com/sarchlab/akita/v4/mem/vm"
 	"github.com/sarchlab/akita/v4/mem/vm/addresstranslator"
+	"github.com/sarchlab/akita/v4/mem/vm/mmu"
 	"github.com/sarchlab/akita/v4/mem/vm/tlb"
+	"github.com/sarchlab/akita/v4/sim"
 	"github.com/sarchlab/akita/v4/sim/directconnection"
-
+	"github.com/sarchlab/akita/v4/simulation"
 	"github.com/sarchlab/akita/v4/tracing"
-	"github.com/sarchlab/yuzawa_example/ping/benchmarks/relu"
-	"github.com/sarchlab/yuzawa_example/ping/mmu"
-	"github.com/sarchlab/yuzawa_example/ping/rob"
-
 	"github.com/sarchlab/mgpusim/v4/amd/driver"
 	"github.com/sarchlab/mgpusim/v4/amd/timing/cp"
 	"github.com/sarchlab/mgpusim/v4/amd/timing/cu"
+	"github.com/sarchlab/mgpusim/v4/amd/timing/rob"
+	"github.com/sarchlab/yuzawa_example/ping/benchmarks/relu"
 )
 
 func main() {
 	s := simulation.MakeBuilder().Build()
 	engine := s.GetEngine()
 
+	sharedStorage := mem.NewStorage(16 * mem.GB)
+
 	MemCtrl := idealmemcontroller.MakeBuilder().
 		WithEngine(engine).
-		WithNewStorage(4 * mem.GB).
-		WithLatency(100).
+		WithStorage(sharedStorage).
+		WithLatency(10).
 		Build("MemCtrl")
 	s.RegisterComponent(MemCtrl)
 
-	L2Cache := writeback.MakeBuilder().
+	L2Cache := writethrough.MakeBuilder().
 		WithEngine(engine).
 		WithFreq(1 * sim.GHz).
 		WithWayAssociativity(4).
-		WithNumReqPerCycle(8).
+		WithLog2BlockSize(6).
 		WithAddressMapperType("single").
 		WithRemotePorts(MemCtrl.GetPortByName("Top").AsRemote()).
 		Build("L2Cache")
 	s.RegisterComponent(L2Cache)
 
-	L1VCache := writethrough.MakeBuilder().
+	L1VCache := writearound.MakeBuilder().
 		WithEngine(engine).
 		WithFreq(1 * sim.GHz).
-		WithWayAssociativity(2).
+		WithWayAssociativity(4).
+		WithNumBanks(1).
+		WithLog2BlockSize(6).
+		WithTotalByteSize(16 * mem.KB).
+		WithBankLatency(60).
+		WithNumMSHREntry(16).
 		WithAddressMapperType("single").
 		WithRemotePorts(L2Cache.GetPortByName("Top").AsRemote()).
 		Build("L1VCache")
 	s.RegisterComponent(L1VCache)
 
+	L1SCache := writethrough.MakeBuilder().
+		WithEngine(engine).
+		WithFreq(1 * sim.GHz).
+		WithWayAssociativity(2).
+		WithLog2BlockSize(6).
+		WithAddressMapperType("single").
+		WithRemotePorts(L2Cache.GetPortByName("Top").AsRemote()).
+		Build("L1SCache")
+	s.RegisterComponent(L1SCache)
+
+	L1ICache := writethrough.MakeBuilder().
+		WithEngine(engine).
+		WithFreq(1 * sim.GHz).
+		WithWayAssociativity(2).
+		WithLog2BlockSize(6).
+		WithAddressMapperType("single").
+		WithRemotePorts(L2Cache.GetPortByName("Top").AsRemote()).
+		Build("L1ICache")
+	s.RegisterComponent(L1ICache)
+
+	pageTable := vm.NewPageTable(12)
 	IoMMU := mmu.MakeBuilder().
 		WithEngine(engine).
 		WithFreq(1 * sim.GHz).
 		WithLog2PageSize(12).
 		WithMaxNumReqInFlight(16).
 		WithPageWalkingLatency(10).
+		WithPageTable(pageTable).
 		Build("IoMMU")
 	s.RegisterComponent(IoMMU)
 
@@ -73,10 +97,10 @@ func main() {
 		WithFreq(1 * sim.GHz).
 		WithNumWays(64).
 		WithNumSets(64).
-		WithPageSize(4096).
-		WithNumReqPerCycle(8).
-		WithRemotePorts(IoMMU.GetPortByName("Top").AsRemote()).
-		WithAddressMapperType("single").
+		WithLog2PageSize(12).
+		WithNumReqPerCycle(4).
+		WithTranslationProviderMapperType("single").
+		WithTranslationProviders(IoMMU.GetPortByName("Top").AsRemote()).
 		Build("L2TLB")
 	s.RegisterComponent(L2TLB)
 
@@ -85,245 +109,267 @@ func main() {
 		WithFreq(1 * sim.GHz).
 		WithNumWays(8).
 		WithNumSets(8).
-		WithPageSize(4096).
+		WithLog2PageSize(12).
 		WithNumReqPerCycle(2).
-		WithRemotePorts(L2TLB.GetPortByName("Top").AsRemote()).
-		WithAddressMapperType("single").
+		WithTranslationProviderMapperType("single").
+		WithTranslationProviders(L2TLB.GetPortByName("Top").AsRemote()).
 		Build("VTLB")
 	s.RegisterComponent(VTLB)
-
-	VAT := addresstranslator.MakeBuilder().
-		WithEngine(engine).
-		WithFreq(1 * sim.GHz).
-		WithLog2PageSize(12).
-		WithTranslationProvider(VTLB.GetPortByName("Top").AsRemote()).
-		WithRemotePorts(L1VCache.GetPortByName("Top").AsRemote()).
-		WithAddressMapperType("single").
-		Build("VAT")
-	s.RegisterComponent(VAT)
-
-	VROB := rob.MakeBuilder().
-		WithEngine(engine).
-		WithFreq(1 * sim.GHz).
-		WithNumReqPerCycle(4).
-		WithBufferSize(128).
-		WithBottomUnit(VAT.GetPortByName("Top")).
-		Build("VROB")
-	s.RegisterComponent(VROB)
-
-	L1SCache := writethrough.MakeBuilder().
-		WithEngine(engine).
-		WithFreq(1 * sim.GHz).
-		WithWayAssociativity(2).
-		WithAddressMapperType("single").
-		WithRemotePorts(L2Cache.GetPortByName("Top").AsRemote()).
-		Build("L1SCache")
-	s.RegisterComponent(L1SCache)
 
 	STLB := tlb.MakeBuilder().
 		WithEngine(engine).
 		WithFreq(1 * sim.GHz).
 		WithNumWays(8).
 		WithNumSets(8).
-		WithPageSize(4096).
+		WithLog2PageSize(12).
 		WithNumReqPerCycle(2).
-		WithRemotePorts(L2TLB.GetPortByName("Top").AsRemote()).
-		WithAddressMapperType("single").
+		WithTranslationProviderMapperType("single").
+		WithTranslationProviders(L2TLB.GetPortByName("Top").AsRemote()).
 		Build("STLB")
 	s.RegisterComponent(STLB)
-
-	SAT := addresstranslator.MakeBuilder().
-		WithEngine(engine).
-		WithFreq(1 * sim.GHz).
-		WithLog2PageSize(12).
-		WithTranslationProvider(STLB.GetPortByName("Top").AsRemote()).
-		WithRemotePorts(L1SCache.GetPortByName("Top").AsRemote()).
-		WithAddressMapperType("single").
-		Build("SAT")
-	s.RegisterComponent(SAT)
-
-	SROB := rob.MakeBuilder().
-		WithEngine(engine).
-		WithFreq(1 * sim.GHz).
-		WithNumReqPerCycle(4).
-		WithBufferSize(128).
-		WithBottomUnit(SAT.GetPortByName("Top")).
-		Build("SROB")
-	s.RegisterComponent(SROB)
-
-	L1ICache := writethrough.MakeBuilder().
-		WithEngine(engine).
-		WithFreq(1 * sim.GHz).
-		WithWayAssociativity(2).
-		WithAddressMapperType("single").
-		WithRemotePorts(L2Cache.GetPortByName("Top").AsRemote()).
-		Build("L1ICache")
-	s.RegisterComponent(L1ICache)
 
 	ITLB := tlb.MakeBuilder().
 		WithEngine(engine).
 		WithFreq(1 * sim.GHz).
 		WithNumWays(8).
 		WithNumSets(8).
-		WithPageSize(4096).
+		WithLog2PageSize(12).
 		WithNumReqPerCycle(2).
-		WithRemotePorts(L2TLB.GetPortByName("Top").AsRemote()).
-		WithAddressMapperType("single").
+		WithTranslationProviderMapperType("single").
+		WithTranslationProviders(L2TLB.GetPortByName("Top").AsRemote()).
 		Build("ITLB")
 	s.RegisterComponent(ITLB)
+
+	VAT := addresstranslator.MakeBuilder().
+		WithEngine(engine).
+		WithFreq(1 * sim.GHz).
+		WithLog2PageSize(12).
+		WithDeviceID(1).
+		WithTranslationProviders(VTLB.GetPortByName("Top").AsRemote()).
+		WithMemoryProviderType("single").
+		WithMemoryProviders(L1VCache.GetPortByName("Top").AsRemote()).
+		WithTranslationProviderMapperType("single").
+		Build("VAT")
+	s.RegisterComponent(VAT)
+
+	SAT := addresstranslator.MakeBuilder().
+		WithEngine(engine).
+		WithFreq(1 * sim.GHz).
+		WithLog2PageSize(12).
+		WithDeviceID(1).
+		WithTranslationProviders(STLB.GetPortByName("Top").AsRemote()).
+		WithMemoryProviderType("single").
+		WithMemoryProviders(L1SCache.GetPortByName("Top").AsRemote()).
+		WithTranslationProviderMapperType("single").
+		Build("SAT")
+	s.RegisterComponent(SAT)
 
 	IAT := addresstranslator.MakeBuilder().
 		WithEngine(engine).
 		WithFreq(1 * sim.GHz).
 		WithLog2PageSize(12).
-		WithTranslationProvider(ITLB.GetPortByName("Top").AsRemote()).
-		WithRemotePorts(L1ICache.GetPortByName("Top").AsRemote()).
-		WithAddressMapperType("single").
+		WithDeviceID(1).
+		WithTranslationProviders(ITLB.GetPortByName("Top").AsRemote()).
+		WithMemoryProviderType("single").
+		WithMemoryProviders(L1ICache.GetPortByName("Top").AsRemote()).
+		WithTranslationProviderMapperType("single").
 		Build("IAT")
 	s.RegisterComponent(IAT)
+
+	VROB := rob.MakeBuilder().
+		WithEngine(engine).
+		WithFreq(1 * sim.GHz).
+		WithNumReqPerCycle(4).
+		WithBufferSize(128).
+		WithBottomUnit(VAT.GetPortByName("Top").AsRemote()).
+		Build("VROB")
+	s.RegisterComponent(VROB)
+
+	SROB := rob.MakeBuilder().
+		WithEngine(engine).
+		WithFreq(1 * sim.GHz).
+		WithNumReqPerCycle(4).
+		WithBufferSize(128).
+		WithBottomUnit(SAT.GetPortByName("Top").AsRemote()).
+		Build("SROB")
+	s.RegisterComponent(SROB)
 
 	IROB := rob.MakeBuilder().
 		WithEngine(engine).
 		WithFreq(1 * sim.GHz).
 		WithNumReqPerCycle(4).
 		WithBufferSize(128).
-		WithBottomUnit(IAT.GetPortByName("Top")).
+		WithBottomUnit(IAT.GetPortByName("Top").AsRemote()).
 		Build("IROB")
 	s.RegisterComponent(IROB)
 
 	CU := cu.MakeBuilder().
 		WithEngine(engine).
 		WithFreq(1 * sim.GHz).
+		WithVGPRCount([]int{32768, 32768, 32768, 32768}).
+		WithInstMem(IROB.GetPortByName("Top")).
+		WithScalarMem(SROB.GetPortByName("Top")).
+		WithVectorMemModules(&mem.SinglePortMapper{
+			Port: VROB.GetPortByName("Top").AsRemote(),
+		}).
+		WithSIMDCount(4).
 		Build("CU")
 	s.RegisterComponent(CU)
-
-	CP := cp.MakeBuilder().
-		WithEngine(engine).
-		WithFreq(1 * sim.GHz).
-		Build("CP")
-	s.RegisterComponent(CP)
-
-	pt := vm.NewPageTable(12)
 
 	Driver := driver.MakeBuilder().
 		WithEngine(engine).
 		WithFreq(1 * sim.GHz).
+		WithGlobalStorage(sharedStorage).
+		WithPageTable(pageTable).
 		WithLog2PageSize(12).
-		WithPageTable(pt).
-		WithGlobalStorage(mem.NewStorage(4 * mem.GB)).
 		WithMagicMemoryCopyMiddleware().
 		Build("Driver")
 	s.RegisterComponent(Driver)
 
-	Driver.RegisterGPU(
-		CP.GetPortByName("ToDriver"),
-		driver.DeviceProperties{
-			CUCount:  1,
-			DRAMSize: 4 * mem.GB,
-		},
-	)
+	CP := cp.MakeBuilder().
+		WithEngine(engine).
+		WithFreq(1 * sim.GHz).
+		WithCU(CU).
+		Build("CP")
+	s.RegisterComponent(CP)
 
-	Conn1 := directconnection.MakeBuilder().WithEngine(engine).WithFreq(1 * sim.GHz).Build("Conn1")
-	Conn1.PlugIn(Driver.GetPortByName("GPU"))
-	Conn1.PlugIn(CP.GetPortByName("ToDriver"))
+	// Driver.RegisterGPU(CP.GetPortByName("ToDriver"), driver.DeviceProperties{
+	// 	CUCount:  1,
+	// 	DRAMSize: 4 * mem.GB,
+	// })
 
-	Conn2 := directconnection.MakeBuilder().WithEngine(engine).WithFreq(1 * sim.GHz).Build("Conn2")
-	Conn2.PlugIn(CP.GetPortByName("ToCUs"))
-	Conn2.PlugIn(CU.GetPortByName("Ctrl"))
+	// CP.Driver = Driver.GetPortByName("GPU")
 
-	Conn3 := directconnection.MakeBuilder().WithEngine(engine).WithFreq(1 * sim.GHz).Build("Conn3")
-	Conn3.PlugIn(CU.GetPortByName("VectorMem"))
-	Conn3.PlugIn(VROB.GetPortByName("Top"))
+	ConnGPU1 := directconnection.MakeBuilder().
+		WithEngine(engine).
+		WithFreq(1 * sim.GHz).
+		Build("ConnGPU1")
+	ConnGPU1.PlugIn(CP.GetPortByName("ToDriver"))
+	ConnGPU1.PlugIn(Driver.GetPortByName("GPU"))
 
-	Conn4 := directconnection.MakeBuilder().WithEngine(engine).WithFreq(1 * sim.GHz).Build("Conn4")
-	Conn4.PlugIn(VROB.GetPortByName("Bottom"))
-	Conn4.PlugIn(VAT.GetPortByName("Top"))
+	ConnCPToCU := directconnection.MakeBuilder().
+		WithEngine(engine).
+		WithFreq(1 * sim.GHz).
+		Build("ConnCPToCU")
+	ConnCPToCU.PlugIn(CP.GetPortByName("ToCUs"))
+	ConnCPToCU.PlugIn(CU.GetPortByName("Top"))
+	ConnCPToCU.PlugIn(CU.GetPortByName("Ctrl"))
 
-	Conn5 := directconnection.MakeBuilder().WithEngine(engine).WithFreq(1 * sim.GHz).Build("Conn5")
-	Conn5.PlugIn(VAT.GetPortByName("Translation"))
-	Conn5.PlugIn(VTLB.GetPortByName("Top"))
+	ConnCUToVROB := directconnection.MakeBuilder().
+		WithEngine(engine).
+		WithFreq(1 * sim.GHz).
+		Build("ConnCUToVROB")
+	ConnCUToVROB.PlugIn(CU.GetPortByName("VectorMem"))
+	ConnCUToVROB.PlugIn(VROB.GetPortByName("Top"))
 
-	// Conn6 := directconnection.MakeBuilder().WithEngine(engine).WithFreq(1 * sim.GHz).Build("Conn6")
-	// Conn6.PlugIn(VTLB.GetPortByName("Bottom"))
-	// Conn6.PlugIn(L2TLB.GetPortByName("Top"))
+	ConnCUToSROB := directconnection.MakeBuilder().
+		WithEngine(engine).
+		WithFreq(1 * sim.GHz).
+		Build("ConnCUToSROB")
+	ConnCUToSROB.PlugIn(CU.GetPortByName("ScalarMem"))
+	ConnCUToSROB.PlugIn(SROB.GetPortByName("Top"))
 
-	Conn7 := directconnection.MakeBuilder().WithEngine(engine).WithFreq(1 * sim.GHz).Build("Conn7")
-	Conn7.PlugIn(L2TLB.GetPortByName("Bottom"))
-	Conn7.PlugIn(IoMMU.GetPortByName("Top"))
+	ConnCUToIROB := directconnection.MakeBuilder().
+		WithEngine(engine).
+		WithFreq(1 * sim.GHz).
+		Build("ConnCUToIROB")
+	ConnCUToIROB.PlugIn(CU.GetPortByName("InstMem"))
+	ConnCUToIROB.PlugIn(IROB.GetPortByName("Top"))
 
-	Conn8 := directconnection.MakeBuilder().WithEngine(engine).WithFreq(1 * sim.GHz).Build("Conn8")
-	Conn8.PlugIn(VAT.GetPortByName("Bottom"))
-	Conn8.PlugIn(L1VCache.GetPortByName("Top"))
+	ConnVROBToVAT := directconnection.MakeBuilder().
+		WithEngine(engine).
+		WithFreq(1 * sim.GHz).
+		Build("ConnVROBToVAT")
+	ConnVROBToVAT.PlugIn(VROB.GetPortByName("Bottom"))
+	ConnVROBToVAT.PlugIn(VAT.GetPortByName("Top"))
 
-	Conn9 := directconnection.MakeBuilder().WithEngine(engine).WithFreq(1 * sim.GHz).Build("Conn9")
-	Conn9.PlugIn(L1VCache.GetPortByName("Bottom"))
-	Conn9.PlugIn(L2Cache.GetPortByName("Top"))
+	ConnSROBToSAT := directconnection.MakeBuilder().
+		WithEngine(engine).
+		WithFreq(1 * sim.GHz).
+		Build("ConnSROBToSAT")
+	ConnSROBToSAT.PlugIn(SROB.GetPortByName("Bottom"))
+	ConnSROBToSAT.PlugIn(SAT.GetPortByName("Top"))
 
-	Conn10 := directconnection.MakeBuilder().WithEngine(engine).WithFreq(1 * sim.GHz).Build("Conn10")
-	Conn10.PlugIn(L2Cache.GetPortByName("Bottom"))
-	Conn10.PlugIn(MemCtrl.GetPortByName("Top"))
+	ConnIROBToIAT := directconnection.MakeBuilder().
+		WithEngine(engine).
+		WithFreq(1 * sim.GHz).
+		Build("ConnIROBToIAT")
+	ConnIROBToIAT.PlugIn(IROB.GetPortByName("Bottom"))
+	ConnIROBToIAT.PlugIn(IAT.GetPortByName("Top"))
 
-	Conn11 := directconnection.MakeBuilder().WithEngine(engine).WithFreq(1 * sim.GHz).Build("Conn11")
-	Conn11.PlugIn(CU.GetPortByName("ScalarMem"))
-	Conn11.PlugIn(SROB.GetPortByName("Top"))
+	ConnVATTranslationToVTLB := directconnection.MakeBuilder().
+		WithEngine(engine).
+		WithFreq(1 * sim.GHz).
+		Build("ConnVATTranslationToVTLB")
+	ConnVATTranslationToVTLB.PlugIn(VAT.GetPortByName("Translation"))
+	ConnVATTranslationToVTLB.PlugIn(VTLB.GetPortByName("Top"))
 
-	Conn12 := directconnection.MakeBuilder().WithEngine(engine).WithFreq(1 * sim.GHz).Build("Conn12")
-	Conn12.PlugIn(SROB.GetPortByName("Bottom"))
-	Conn12.PlugIn(SAT.GetPortByName("Top"))
+	ConnSATTranslationToSTLB := directconnection.MakeBuilder().
+		WithEngine(engine).
+		WithFreq(1 * sim.GHz).
+		Build("ConnSATTranslationToSTLB")
+	ConnSATTranslationToSTLB.PlugIn(SAT.GetPortByName("Translation"))
+	ConnSATTranslationToSTLB.PlugIn(STLB.GetPortByName("Top"))
 
-	Conn13 := directconnection.MakeBuilder().WithEngine(engine).WithFreq(1 * sim.GHz).Build("Conn13")
-	Conn13.PlugIn(SAT.GetPortByName("Translation"))
-	Conn13.PlugIn(STLB.GetPortByName("Top"))
+	ConnIATTranslationToITLB := directconnection.MakeBuilder().
+		WithEngine(engine).
+		WithFreq(1 * sim.GHz).
+		Build("ConnIATTranslationToITLB")
+	ConnIATTranslationToITLB.PlugIn(IAT.GetPortByName("Translation"))
+	ConnIATTranslationToITLB.PlugIn(ITLB.GetPortByName("Top"))
 
-	Conn14 := directconnection.MakeBuilder().WithEngine(engine).WithFreq(1 * sim.GHz).Build("Conn14")
-	Conn14.PlugIn(SAT.GetPortByName("Bottom"))
-	Conn14.PlugIn(L1SCache.GetPortByName("Top"))
+	ConnVATToL1VCache := directconnection.MakeBuilder().
+		WithEngine(engine).
+		WithFreq(1 * sim.GHz).
+		Build("ConnVATToL1VCache")
+	ConnVATToL1VCache.PlugIn(VAT.GetPortByName("Bottom"))
+	ConnVATToL1VCache.PlugIn(L1VCache.GetPortByName("Top"))
 
-	// Conn14 := directconnection.MakeBuilder().WithEngine(engine).WithFreq(1 * sim.GHz).Build("Conn14")
-	// Conn14.PlugIn(STLB.GetPortByName("Bottom"))
-	// Conn14.PlugIn(L2TLB.GetPortByName("Top"))
+	ConnSATToL1SCache := directconnection.MakeBuilder().
+		WithEngine(engine).
+		WithFreq(1 * sim.GHz).
+		Build("ConnSATToL1SCache")
+	ConnSATToL1SCache.PlugIn(SAT.GetPortByName("Bottom"))
+	ConnSATToL1SCache.PlugIn(L1SCache.GetPortByName("Top"))
 
-	Conn15 := directconnection.MakeBuilder().WithEngine(engine).WithFreq(1 * sim.GHz).Build("Conn15")
-	Conn15.PlugIn(CU.GetPortByName("InstMem"))
-	Conn15.PlugIn(IROB.GetPortByName("Top"))
+	ConnIATToL1ICache := directconnection.MakeBuilder().
+		WithEngine(engine).
+		WithFreq(1 * sim.GHz).
+		Build("ConnIATToL1ICache")
+	ConnIATToL1ICache.PlugIn(IAT.GetPortByName("Bottom"))
+	ConnIATToL1ICache.PlugIn(L1ICache.GetPortByName("Top"))
 
-	Conn16 := directconnection.MakeBuilder().WithEngine(engine).WithFreq(1 * sim.GHz).Build("Conn16")
-	Conn16.PlugIn(IROB.GetPortByName("Bottom"))
-	Conn16.PlugIn(IAT.GetPortByName("Top"))
+	ConnL1ToL2 := directconnection.MakeBuilder().
+		WithEngine(engine).
+		WithFreq(1 * sim.GHz).
+		Build("ConnL1ToL2")
+	ConnL1ToL2.PlugIn(L1VCache.GetPortByName("Bottom"))
+	ConnL1ToL2.PlugIn(L1SCache.GetPortByName("Bottom"))
+	ConnL1ToL2.PlugIn(L1ICache.GetPortByName("Bottom"))
+	ConnL1ToL2.PlugIn(L2Cache.GetPortByName("Top"))
 
-	Conn17 := directconnection.MakeBuilder().WithEngine(engine).WithFreq(1 * sim.GHz).Build("Conn17")
-	Conn17.PlugIn(IAT.GetPortByName("Translation"))
-	Conn17.PlugIn(ITLB.GetPortByName("Top"))
+	ConnL2AndDMAToMemCtrl := directconnection.MakeBuilder().
+		WithEngine(engine).
+		WithFreq(1 * sim.GHz).
+		Build("ConnL2AndDMAToMemCtrl")
+	ConnL2AndDMAToMemCtrl.PlugIn(L2Cache.GetPortByName("Bottom"))
+	ConnL2AndDMAToMemCtrl.PlugIn(MemCtrl.GetPortByName("Top"))
 
-	Conn18 := directconnection.MakeBuilder().WithEngine(engine).WithFreq(1 * sim.GHz).Build("Conn18")
-	Conn18.PlugIn(IAT.GetPortByName("Bottom"))
-	Conn18.PlugIn(L1ICache.GetPortByName("Top"))
+	ConnTLBToL2TLB := directconnection.MakeBuilder().
+		WithEngine(engine).
+		WithFreq(1 * sim.GHz).
+		Build("ConnVTLBToL2TLB")
+	ConnTLBToL2TLB.PlugIn(VTLB.GetPortByName("Bottom"))
+	ConnTLBToL2TLB.PlugIn(STLB.GetPortByName("Bottom"))
+	ConnTLBToL2TLB.PlugIn(ITLB.GetPortByName("Bottom"))
+	ConnTLBToL2TLB.PlugIn(L2TLB.GetPortByName("Top"))
 
-	// Conn19 := directconnection.MakeBuilder().WithEngine(engine).WithFreq(1 * sim.GHz).Build("Conn19")
-	// Conn19.PlugIn(VTLB.GetPortByName("Bottom"))
-	// Conn19.PlugIn(STLB.GetPortByName("Bottom"))
-	// Conn19.PlugIn(ITLB.GetPortByName("Bottom"))
-	// Conn19.PlugIn(L2TLB.GetPortByName("Top"))
-
-	// Conn20 := directconnection.MakeBuilder().WithEngine(engine).WithFreq(1 * sim.GHz).Build("Conn20")
-	// Conn20.PlugIn(CP.GetPortByName("ToTLBs"))
-	// Conn20.PlugIn(VTLB.GetPortByName("Control"))
-	// Conn20.PlugIn(STLB.GetPortByName("Control"))
-	// Conn20.PlugIn(ITLB.GetPortByName("Control"))
-
-	// Conn21 := directconnection.MakeBuilder().WithEngine(engine).WithFreq(1 * sim.GHz).Build("Conn21")
-	// Conn21.PlugIn(CP.GetPortByName("ToAddressTranslators"))
-	// Conn21.PlugIn(VAT.GetPortByName("Control"))
-	// Conn21.PlugIn(SAT.GetPortByName("Control"))
-	// Conn21.PlugIn(IAT.GetPortByName("Control"))
-
-	// Conn22 := directconnection.MakeBuilder().WithEngine(engine).WithFreq(1 * sim.GHz).Build("Conn22")
-	// Conn22.PlugIn(CP.GetPortByName("ToCaches"))
-	// Conn22.PlugIn(L1VCache.GetPortByName("Control"))
-	// Conn22.PlugIn(L1SCache.GetPortByName("Control"))
-	// Conn22.PlugIn(L1ICache.GetPortByName("Control"))
-	// Conn22.PlugIn(L2Cache.GetPortByName("Control"))
-
+	ConnL2TLBToIoMMU := directconnection.MakeBuilder().
+		WithEngine(engine).
+		WithFreq(1 * sim.GHz).
+		Build("ConnL2TLBToIoMMU")
+	ConnL2TLBToIoMMU.PlugIn(L2TLB.GetPortByName("Bottom"))
+	ConnL2TLBToIoMMU.PlugIn(IoMMU.GetPortByName("Top"))
 
 	traceFile, err := os.Create("trace.log")
 	if err != nil {
@@ -335,11 +381,9 @@ func main() {
 
 	benchmark := relu.MakeBuilder().
 		WithSimulation(s).
-		WithLength(1 << 20).
-		Build("Benchmark")
-	benchmark.Run()
-	Driver.Run()
+		WithLength(4).
+		Build("ReLU")
 
+	benchmark.Run()
 	s.Terminate()
-	log.Println("Simulation completed successfully.")
 }

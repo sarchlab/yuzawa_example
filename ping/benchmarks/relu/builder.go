@@ -1,9 +1,11 @@
 package relu
 
 import (
+	"github.com/sarchlab/akita/v4/mem/mem"
 	"github.com/sarchlab/akita/v4/simulation"
 	"github.com/sarchlab/mgpusim/v4/amd/benchmarks/dnn/layer_benchmarks/relu"
 	"github.com/sarchlab/mgpusim/v4/amd/driver"
+	"github.com/sarchlab/mgpusim/v4/amd/timing/cp"
 )
 
 type Builder struct {
@@ -30,9 +32,19 @@ func (b *Builder) WithLength(l int) *Builder {
 
 // Build creates a ReLU benchmark with the given parameters.
 func (b *Builder) Build(name string) *Benchmark {
-	driver := b.sim.GetComponentByName("Driver").(*driver.Driver)
+	d := b.sim.GetComponentByName("Driver").(*driver.Driver)
+	cp := b.sim.GetComponentByName("CP").(*cp.CommandProcessor)
 
-	r := relu.NewBenchmark(driver)
+	// CP-Driver connection
+	cp.Driver = d.GetPortByName("GPU")
+
+	// Register GPU with driver
+	d.RegisterGPU(cp.GetPortByName("ToDriver"), driver.DeviceProperties{
+		CUCount:  1,
+		DRAMSize: 4 * mem.GB,
+	})
+
+	r := relu.NewBenchmark(d)
 	r.Length = b.length
 	r.SelectGPU([]int{1})
 
