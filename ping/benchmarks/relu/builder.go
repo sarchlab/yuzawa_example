@@ -32,11 +32,18 @@ func (b *Builder) WithLength(l int) *Builder {
 
 // Build creates a ReLU benchmark with the given parameters.
 func (b *Builder) Build(name string) *Benchmark {
-	d := b.sim.GetComponentByName("Driver").(*driver.Driver)
-	cp := b.sim.GetComponentByName("CP").(*cp.CommandProcessor)
+	// Get the driver and CP from simulation
+	driverComp := b.sim.GetComponentByName("Driver")
+	if driverComp == nil {
+		panic("Driver component not found in simulation!")
+	}
+	d := driverComp.(*driver.Driver)
 
-	// CP-Driver connection
-	cp.Driver = d.GetPortByName("GPU")
+	cpComp := b.sim.GetComponentByName("CP")
+	if cpComp == nil {
+		panic("CP component not found in simulation!")
+	}
+	cp := cpComp.(*cp.CommandProcessor)
 
 	// Register GPU with driver
 	d.RegisterGPU(cp.GetPortByName("ToDriver"), driver.DeviceProperties{

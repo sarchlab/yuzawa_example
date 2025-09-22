@@ -39,4 +39,6 @@ func (b *Benchmark) Run() {
 
 	// Terminate the driver
 	d.Terminate()
+
+	log.Println("Simulation completed")
 }

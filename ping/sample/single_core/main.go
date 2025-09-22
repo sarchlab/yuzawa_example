@@ -229,6 +229,7 @@ func main() {
 	CP := cp.MakeBuilder().
 		WithEngine(engine).
 		WithFreq(1 * sim.GHz).
+		WithDriver(Driver.GetPortByName("GPU")).
 		WithCU(CU).
 		Build("CP")
 	s.RegisterComponent(CP)
