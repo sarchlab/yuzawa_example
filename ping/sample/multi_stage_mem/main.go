@@ -9,6 +9,9 @@ import (
 	"github.com/sarchlab/akita/v4/mem/idealmemcontroller"
 	"github.com/sarchlab/akita/v4/mem/mem"
 	"github.com/sarchlab/akita/v4/mem/trace"
+	"github.com/sarchlab/akita/v4/mem/vm"
+	"github.com/sarchlab/akita/v4/mem/vm/mmu"
+	"github.com/sarchlab/mgpusim/v4/amd/timing/rob"
 
 	"github.com/sarchlab/akita/v4/sim"
 	"github.com/sarchlab/akita/v4/simulation"
@@ -19,8 +22,6 @@ import (
 	"github.com/sarchlab/akita/v4/tracing"
 	"github.com/sarchlab/yuzawa_example/ping/benchmarks/multi_stage_memory"
 	"github.com/sarchlab/yuzawa_example/ping/memaccessagent"
-	"github.com/sarchlab/yuzawa_example/ping/mmu"
-	"github.com/sarchlab/yuzawa_example/ping/rob"
 )
 
 func main() {
@@ -48,17 +49,20 @@ func main() {
 		WithEngine(engine).
 		WithFreq(1 * sim.GHz).
 		WithWayAssociativity(2).
+		WithLog2BlockSize(6).
 		WithAddressMapperType("single").
 		WithRemotePorts(L2Cache.GetPortByName("Top").AsRemote()).
 		Build("L1Cache")
 	s.RegisterComponent(L1Cache)
 
+	pageTable := vm.NewPageTable(12)
 	IoMMU := mmu.MakeBuilder().
 		WithEngine(engine).
 		WithFreq(1 * sim.GHz).
 		WithLog2PageSize(12).
 		WithMaxNumReqInFlight(16).
 		WithPageWalkingLatency(10).
+		WithPageTable(pageTable).
 		Build("IoMMU")
 	s.RegisterComponent(IoMMU)
 
@@ -67,10 +71,10 @@ func main() {
 		WithFreq(1 * sim.GHz).
 		WithNumWays(64).
 		WithNumSets(64).
-		WithPageSize(4096).
+		WithLog2PageSize(12).
 		WithNumReqPerCycle(4).
-		WithRemotePorts(IoMMU.GetPortByName("Top").AsRemote()).
-		WithAddressMapperType("single").
+		WithTranslationProviderMapperType("single").
+		WithTranslationProviders(IoMMU.GetPortByName("Top").AsRemote()).
 		Build("L2TLB")
 	s.RegisterComponent(L2TLB)
 
@@ -79,10 +83,10 @@ func main() {
 		WithFreq(1 * sim.GHz).
 		WithNumWays(8).
 		WithNumSets(8).
-		WithPageSize(4096).
+		WithLog2PageSize(12).
 		WithNumReqPerCycle(2).
-		WithRemotePorts(L2TLB.GetPortByName("Top").AsRemote()).
-		WithAddressMapperType("single").
+		WithTranslationProviderMapperType("single").
+		WithTranslationProviders(L2TLB.GetPortByName("Top").AsRemote()).
 		Build("TLB")
 	s.RegisterComponent(TLB)
 
@@ -90,9 +94,11 @@ func main() {
 		WithEngine(engine).
 		WithFreq(1 * sim.GHz).
 		WithLog2PageSize(12).
-		WithTranslationProvider(TLB.GetPortByName("Top").AsRemote()).
-		WithRemotePorts(L1Cache.GetPortByName("Top").AsRemote()).
-		WithAddressMapperType("single").
+		WithDeviceID(1).
+		WithTranslationProviderMapperType("single").
+		WithTranslationProviders(TLB.GetPortByName("Top").AsRemote()).
+		WithMemoryProviderType("single").
+		WithMemoryProviders(L1Cache.GetPortByName("Top").AsRemote()).
 		Build("AT")
 	s.RegisterComponent(AT)
 
@@ -101,7 +107,7 @@ func main() {
 		WithFreq(1 * sim.GHz).
 		WithNumReqPerCycle(4).
 		WithBufferSize(128).
-		WithBottomUnit(AT.GetPortByName("Top")).
+		WithBottomUnit(AT.GetPortByName("Top").AsRemote()).
 		Build("ROB")
 	s.RegisterComponent(ROB)
 	// if ROB.BottomUnit == nil {
@@ -114,7 +120,7 @@ func main() {
 		WithWriteLeft(100000).
 		WithReadLeft(100000).
 		WithEngine(engine).
-		WithLowModule(ROB.GetPortByName("Top")).
+		WithLowModule(L1Cache.GetPortByName("Top")).
 		Build("MemAgent")
 	s.RegisterComponent(MemAgent)
 
