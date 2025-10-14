@@ -1,0 +1,33 @@
+{
+    "name": "MemAccessAgent",
+    "description": "An agent that performs random memory accesses for simulation testing.",
+    "ports": [
+      {
+        "name": "Mem"
+      }
+    ],
+    "parameters": [
+      {
+        "name": "frequency",
+        "type": "float",
+        "unit": "Hz",
+        "default": 1000000000
+      },
+      {
+        "name": "maxAddress",
+        "type": "uint64",
+        "default": 1048576
+      },
+      {
+        "name": "writeLeft",
+        "type": "int",
+        "default": 1000
+      },
+      {
+        "name": "readLeft",
+        "type": "int",
+        "default": 1000
+      }
+    ]
+  }
+  

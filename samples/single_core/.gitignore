@@ -1,0 +1,3 @@
+single_core
+*.sqlite3
+trace.log
