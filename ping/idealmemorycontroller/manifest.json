@@ -1,0 +1,21 @@
+{
+  "name": "IdealMemoryController",
+  "description": "Ideal memory controller for simulation testing.",
+  "ports": [
+    {
+      "name": "Top"
+    }
+  ],
+  "parameters": [
+    {
+      "name": "NewStorage",
+      "type": "uint64",
+      "default": 4000000000
+    },
+    {
+      "name": "Latency",
+      "type": "int",
+      "default": 100
+    }
+  ]
+}
