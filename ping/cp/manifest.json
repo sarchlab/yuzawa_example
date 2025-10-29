@@ -1,0 +1,25 @@
+{
+  "name": "CP",
+  "description": "AMD Command Processor.",
+  "ports": [
+    {
+      "name": "ToCUs"
+    },
+    {
+      "name": "ToDriver"
+    }
+  ],
+  "parameters": [
+    {
+      "name": "frequency",
+      "type": "float",
+      "unit": "Hz",
+      "default": 1000000000
+    },
+    {
+      "name": "CU",
+      "type": "component",
+      "default": "CU"
+    }
+  ]
+}

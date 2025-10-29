@@ -1,0 +1,14 @@
+{
+  "name": "Driver",
+  "description": "AMD GPU driver component.",
+  "ports": [
+    { "name": "GPU" }
+  ],
+  "parameters": [
+    { "name": "frequency",                   "type": "float",     "unit": "Hz",   "default": 1000000000 },
+    { "name": "log2PageSize",                "type": "int",                       "default": 12 },
+    { "name": "pageTable",                   "type": "pageTable",                  "default": null },
+    { "name": "globalStorageBytes",          "type": "uint64",                    "default": 17179869184 },
+    { "name": "magicMemoryCopyMiddleware",   "type": "bool",                      "default": true }
+  ]
+}

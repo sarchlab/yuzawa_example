@@ -1,9 +1,12 @@
 {
   "name": "WriteThrough",
-  "description": "Write through cache agent for simulation testing.",
+  "description": "Write-through cache component aligned with Akita's writethrough builder.",
   "ports": [
     {
       "name": "Top"
+    },
+    {
+      "name": "Bottom"
     }
   ],
   "parameters": [
@@ -22,6 +25,16 @@
       "name": "numReqPerCycle",
       "type": "int",
       "default": 2
+    },
+    {
+      "name": "log2BlockSize",
+      "type": "int",
+      "default": 6
+    },
+    {
+      "name": "addressMapperType",
+      "type": "string",
+      "default": "single"
     },
     {
       "name": "remotePorts",

@@ -1,9 +1,15 @@
 {
   "name": "AddressTranslator",
-  "description": "Address Translator component for virtual memory simulation.",
+  "description": "Address Translator aligned with Akita's addresstranslator builder.",
   "ports": [
     {
       "name": "Top"
+    },
+    {
+      "name": "Translation"
+    },
+    {
+      "name": "Bottom"
     }
   ],
   "parameters": [
@@ -19,7 +25,27 @@
       "default": 12
     },
     {
-      "name": "translationProvider",
+      "name": "deviceID",
+      "type": "int",
+      "default": 0
+    },
+    {
+      "name": "translationProviderMapperType",
+      "type": "string",
+      "default": "single"
+    },
+    {
+      "name": "translationProviders",
+      "type": "port",
+      "default": "null"
+    },
+    {
+      "name": "memoryProviderType",
+      "type": "string",
+      "default": "single"
+    },
+    {
+      "name": "memoryProviders",
       "type": "port",
       "default": "null"
     },

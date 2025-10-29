@@ -1,9 +1,12 @@
 {
   "name": "TLB",
-  "description": "Translation Lookaside Buffer for virtual memory simulation.",
+  "description": "Translation Lookaside Buffer aligned with Akita's tlb builder.",
   "ports": [
     {
       "name": "Top"
+    },
+    {
+      "name": "Bottom"
     }
   ],
   "parameters": [
@@ -24,9 +27,9 @@
       "default": 8
     },
     {
-      "name": "pageSize",
+      "name": "log2PageSize",
       "type": "int",
-      "default": 4096
+      "default": 12
     },
     {
       "name": "numReqPerCycle",
@@ -34,12 +37,12 @@
       "default": 2
     },
     {
-      "name": "addressMapperType",
+      "name": "translationProviderMapperType",
       "type": "string",
       "default": "single"
     },
     {
-      "name": "remotePorts",
+      "name": "translationProviders",
       "type": "port",
       "default": "null"
     }

@@ -19,6 +19,11 @@
       "default": 12
     },
     {
+      "name": "pageTable",
+      "type": "pageTable",
+      "default": null
+    },
+    {
       "name": "maxNumReqInFlight",
       "type": "int",
       "default": 16

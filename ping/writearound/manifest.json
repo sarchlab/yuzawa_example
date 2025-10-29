@@ -1,0 +1,19 @@
+{
+  "name": "WriteAround",
+  "description": "Write-around cache component (commonly used as vector L1).",
+  "ports": [
+    { "name": "Top" },
+    { "name": "Bottom" }
+  ],
+  "parameters": [
+    { "name": "frequency",          "type": "float",  "unit": "Hz",  "default": 1000000000 },
+    { "name": "wayAssociativity",   "type": "int",                    "default": 4 },
+    { "name": "numBanks",           "type": "int",                    "default": 1 },
+    { "name": "log2BlockSize",      "type": "int",                    "default": 6 },
+    { "name": "totalByteSize",      "type": "bytes",                  "default": 16384 },
+    { "name": "bankLatency",        "type": "int",                    "default": 60 },
+    { "name": "numMSHREntry",       "type": "int",                    "default": 16 },
+    { "name": "addressMapperType",  "type": "string",                 "default": "single" },
+    { "name": "remotePorts",        "type": "port",                   "default": "null" }
+  ]
+}

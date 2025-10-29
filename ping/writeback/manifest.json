@@ -1,9 +1,12 @@
 {
   "name": "WriteBack",
-  "description": "Write back cache agent for simulation testing.",
+  "description": "Write-back cache component aligned with Akita's writeback builder.",
   "ports": [
     {
       "name": "Top"
+    },
+    {
+      "name": "Bottom"
     }
   ],
   "parameters": [
@@ -22,6 +25,11 @@
       "name": "numReqPerCycle",
       "type": "int",
       "default": 2
+    },
+    {
+      "name": "log2BlockSize",
+      "type": "int",
+      "default": 6
     },
     {
       "name": "addressMapperType",

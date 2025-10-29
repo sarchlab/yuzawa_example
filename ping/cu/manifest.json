@@ -1,0 +1,19 @@
+{
+  "name": "CU",
+  "description": "AMD Compute Unit component.",
+  "ports": [
+    { "name": "Top" },
+    { "name": "Ctrl" },
+    { "name": "VectorMem" },
+    { "name": "ScalarMem" },
+    { "name": "InstMem" }
+  ],
+  "parameters": [
+    { "name": "frequency",   "type": "float",  "unit": "Hz",  "default": 1000000000 },
+    { "name": "vgprCount",   "type": "int[]",                  "default": [32768, 32768, 32768, 32768] },
+    { "name": "instMem",     "type": "port",                   "default": "null" },
+    { "name": "scalarMem",   "type": "port",                   "default": "null" },
+    { "name": "vectorMem",   "type": "port",                   "default": "null" },
+    { "name": "simdCount",   "type": "int",                    "default": 4 }
+  ]
+}

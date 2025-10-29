@@ -1,0 +1,514 @@
+{
+  "simulation": {
+    "engine": {
+      "package": "github.com/sarchlab/akita/v4/simulation"
+    },
+    "components": [
+      {
+        "builder_package": ["github.com/sarchlab/yuzawa_example/ping/idealmemorycontroller"],
+        "package": ["github.com/sarchlab/akita/v4/mem/mem"],
+        "name": "MemCtrl",
+        "params": [
+          { "name": "NewStorage", "value": 16, "unit": "GB" },
+          { "name": "Latency",    "value": 10 }
+        ],
+        "port": "Top"
+      },
+
+      {
+        "builder_package": ["github.com/sarchlab/yuzawa_example/ping/writethrough"],
+        "package": ["github.com/sarchlab/akita/v4/sim"],
+        "name": "L2Cache",
+        "params": [
+          { "name": "Freq",               "value": 1, "unit": "GHz" },
+          { "name": "WayAssociativity",   "value": 4 },
+          { "name": "Log2BlockSize",      "value": 6 },
+          { "name": "AddressMapperType",  "value": "single" },
+          { "name": "RemotePorts",        "value": "MemCtrl", "port": "Top" }
+        ],
+        "port": "Top"
+      },
+
+      {
+        "builder_package": ["github.com/sarchlab/yuzawa_example/ping/writearound"],
+        "package": [
+          "github.com/sarchlab/akita/v4/sim",
+          "github.com/sarchlab/akita/v4/mem/mem"
+        ],
+        "name": "L1VCache",
+        "params": [
+          { "name": "Freq",               "value": 1,  "unit": "GHz" },
+          { "name": "WayAssociativity",   "value": 4 },
+          { "name": "NumBanks",           "value": 1 },
+          { "name": "Log2BlockSize",      "value": 6 },
+          { "name": "TotalByteSize",      "value": 16, "unit": "KB" },
+          { "name": "BankLatency",        "value": 60 },
+          { "name": "NumMSHREntry",       "value": 16 },
+          { "name": "AddressMapperType",  "value": "single" },
+          { "name": "RemotePorts",        "value": "L2Cache", "port": "Top" }
+        ],
+        "port": "Top"
+      },
+
+      {
+        "builder_package": ["github.com/sarchlab/yuzawa_example/ping/writethrough"],
+        "package": ["github.com/sarchlab/akita/v4/sim"],
+        "name": "L1SCache",
+        "params": [
+          { "name": "Freq",               "value": 1, "unit": "GHz" },
+          { "name": "WayAssociativity",   "value": 2 },
+          { "name": "Log2BlockSize",      "value": 6 },
+          { "name": "AddressMapperType",  "value": "single" },
+          { "name": "RemotePorts",        "value": "L2Cache", "port": "Top" }
+        ],
+        "port": "Top"
+      },
+
+      {
+        "builder_package": ["github.com/sarchlab/yuzawa_example/ping/writethrough"],
+        "package": ["github.com/sarchlab/akita/v4/sim"],
+        "name": "L1ICache",
+        "params": [
+          { "name": "Freq",               "value": 1, "unit": "GHz" },
+          { "name": "WayAssociativity",   "value": 2 },
+          { "name": "Log2BlockSize",      "value": 6 },
+          { "name": "AddressMapperType",  "value": "single" },
+          { "name": "RemotePorts",        "value": "L2Cache", "port": "Top" }
+        ],
+        "port": "Top"
+      },
+
+      {
+        "builder_package": ["github.com/sarchlab/yuzawa_example/ping/mmu"],
+        "package": ["github.com/sarchlab/akita/v4/sim"],
+        "name": "IoMMU",
+        "params": [
+          { "name": "Freq",               "value": 1, "unit": "GHz" },
+          { "name": "Log2PageSize",       "value": 12 },
+          { "name": "MaxNumReqInFlight",  "value": 16 },
+          { "name": "PageWalkingLatency", "value": 10 }
+        ],
+        "port": "Top"
+      },
+
+      {
+        "builder_package": ["github.com/sarchlab/yuzawa_example/ping/tlb"],
+        "package": ["github.com/sarchlab/akita/v4/sim"],
+        "name": "L2TLB",
+        "params": [
+          { "name": "Freq",              "value": 1, "unit": "GHz" },
+          { "name": "NumWays",           "value": 64 },
+          { "name": "NumSets",           "value": 64 },
+          { "name": "Log2PageSize",      "value": 12 },
+          { "name": "NumReqPerCycle",    "value": 4 },
+          { "name": "TranslationProviderMapperType", "value": "single" }
+        ],
+        "port": "Top"
+      },
+
+      {
+        "builder_package": ["github.com/sarchlab/yuzawa_example/ping/tlb"],
+        "package": ["github.com/sarchlab/akita/v4/sim"],
+        "name": "VTLB",
+        "params": [
+          { "name": "Freq",              "value": 1, "unit": "GHz" },
+          { "name": "NumWays",           "value": 8 },
+          { "name": "NumSets",           "value": 8 },
+          { "name": "Log2PageSize",      "value": 12 },
+          { "name": "NumReqPerCycle",    "value": 2 },
+          { "name": "TranslationProviderMapperType", "value": "single" },
+          { "name": "TranslationProviders", "value": "L2TLB", "port": "Top" }
+        ],
+        "port": "Top"
+      },
+
+      {
+        "builder_package": ["github.com/sarchlab/yuzawa_example/ping/tlb"],
+        "package": ["github.com/sarchlab/akita/v4/sim"],
+        "name": "STLB",
+        "params": [
+          { "name": "Freq",              "value": 1, "unit": "GHz" },
+          { "name": "NumWays",           "value": 8 },
+          { "name": "NumSets",           "value": 8 },
+          { "name": "Log2PageSize",      "value": 12 },
+          { "name": "NumReqPerCycle",    "value": 2 },
+          { "name": "TranslationProviderMapperType", "value": "single" },
+          { "name": "TranslationProviders", "value": "L2TLB", "port": "Top" }
+        ],
+        "port": "Top"
+      },
+
+      {
+        "builder_package": ["github.com/sarchlab/akita/v4/mem/vm/tlb"],
+        "package": ["github.com/sarchlab/akita/v4/sim"],
+        "name": "ITLB",
+        "params": [
+          { "name": "Freq",              "value": 1, "unit": "GHz" },
+          { "name": "NumWays",           "value": 8 },
+          { "name": "NumSets",           "value": 8 },
+          { "name": "Log2PageSize",      "value": 12 },
+          { "name": "NumReqPerCycle",    "value": 2 },
+          { "name": "TranslationProviderMapperType", "value": "single" },
+          { "name": "TranslationProviders", "value": "L2TLB", "port": "Top" }
+        ],
+        "port": "Top"
+      },
+
+      {
+        "builder_package": ["github.com/sarchlab/yuzawa_example/ping/addresstranslator"],
+        "package": ["github.com/sarchlab/akita/v4/sim"],
+        "name": "VAT",
+        "params": [
+          { "name": "Freq",                 "value": 1, "unit": "GHz" },
+          { "name": "Log2PageSize",         "value": 12 },
+          { "name": "DeviceID",             "value": 1 },
+          { "name": "TranslationProviders", "value": "VTLB",     "port": "Top" },
+          { "name": "MemoryProviderType",   "value": "single" },
+          { "name": "MemoryProviders",      "value": "L1VCache", "port": "Top" },
+          { "name": "TranslationProviderMapperType", "value": "single" }
+        ],
+        "port": "Top"
+      },
+
+      {
+        "builder_package": ["github.com/sarchlab/yuzawa_example/ping/addresstranslator"],
+        "package": ["github.com/sarchlab/akita/v4/sim"],
+        "name": "SAT",
+        "params": [
+          { "name": "Freq",                 "value": 1, "unit": "GHz" },
+          { "name": "Log2PageSize",         "value": 12 },
+          { "name": "DeviceID",             "value": 1 },
+          { "name": "TranslationProviders", "value": "STLB",     "port": "Top" },
+          { "name": "MemoryProviderType",   "value": "single" },
+          { "name": "MemoryProviders",      "value": "L1SCache", "port": "Top" },
+          { "name": "TranslationProviderMapperType", "value": "single" }
+        ],
+        "port": "Top"
+      },
+
+      {
+        "builder_package": ["github.com/sarchlab/yuzawa_example/ping/addresstranslator"],
+        "package": ["github.com/sarchlab/akita/v4/sim"],
+        "name": "IAT",
+        "params": [
+          { "name": "Freq",                 "value": 1, "unit": "GHz" },
+          { "name": "Log2PageSize",         "value": 12 },
+          { "name": "DeviceID",             "value": 1 },
+          { "name": "TranslationProviders", "value": "ITLB",     "port": "Top" },
+          { "name": "MemoryProviderType",   "value": "single" },
+          { "name": "MemoryProviders",      "value": "L1ICache", "port": "Top" },
+          { "name": "TranslationProviderMapperType", "value": "single" }
+        ],
+        "port": "Top"
+      },
+
+      {
+        "builder_package": ["github.com/sarchlab/yuzawa_example/ping/rob"],
+        "package": ["github.com/sarchlab/akita/v4/sim"],
+        "name": "VROB",
+        "params": [
+          { "name": "Freq",            "value": 1, "unit": "GHz" },
+          { "name": "NumReqPerCycle",  "value": 4 },
+          { "name": "BufferSize",      "value": 128 },
+          { "name": "BottomUnit",      "value": "VAT", "port": "Top" }
+        ],
+        "port": "Top"
+      },
+
+      {
+        "builder_package": ["github.com/sarchlab/yuzawa_example/ping/rob"],
+        "package": ["github.com/sarchlab/akita/v4/sim"],
+        "name": "SROB",
+        "params": [
+          { "name": "Freq",            "value": 1, "unit": "GHz" },
+          { "name": "NumReqPerCycle",  "value": 4 },
+          { "name": "BufferSize",      "value": 128 },
+          { "name": "BottomUnit",      "value": "SAT", "port": "Top" }
+        ],
+        "port": "Top"
+      },
+
+      {
+        "builder_package": ["github.com/sarchlab/yuzawa_example/ping/rob"],
+        "package": ["github.com/sarchlab/akita/v4/sim"],
+        "name": "IROB",
+        "params": [
+          { "name": "Freq",            "value": 1, "unit": "GHz" },
+          { "name": "NumReqPerCycle",  "value": 4 },
+          { "name": "BufferSize",      "value": 128 },
+          { "name": "BottomUnit",      "value": "IAT", "port": "Top" }
+        ],
+        "port": "Top"
+      },
+
+      {
+        "builder_package": ["github.com/sarchlab/yuzawa_example/ping/cu"],
+        "package": ["github.com/sarchlab/akita/v4/sim"],
+        "name": "CU",
+        "params": [
+          { "name": "Freq",       "value": 1, "unit": "GHz" },
+          { "name": "VGPRCount",  "value": [32768, 32768, 32768, 32768] },
+          { "name": "InstMem",    "value": "IROB", "port": "Top" },
+          { "name": "ScalarMem",  "value": "SROB", "port": "Top" },
+          { "name": "VectorMem",  "value": "VROB", "port": "Top" },
+          { "name": "SIMDCount",  "value": 4 }
+        ],
+        "port": "Top"
+      },
+
+      {
+        "builder_package": ["github.com/sarchlab/yuzawa_example/ping/driver"],
+        "package": [
+          "github.com/sarchlab/akita/v4/sim",
+          "github.com/sarchlab/akita/v4/mem/mem"
+        ],
+        "name": "Driver",
+        "params": [
+          { "name": "Freq",                    "value": 1,  "unit": "GHz" },
+          { "name": "GlobalStorageBytes",      "value": 16, "unit": "GB"  },
+          { "name": "Log2PageSize",            "value": 12 },
+          { "name": "MagicMemoryCopyMiddleware","value": true }
+        ],
+        "port": "GPU"
+      },
+
+      {
+        "builder_package": ["github.com/sarchlab/yuzawa_example/ping/cp"],
+        "package": ["github.com/sarchlab/akita/v4/sim"],
+        "name": "CP",
+        "params": [
+          { "name": "Freq", "value": 1, "unit": "GHz" },
+          { "name": "CU",   "value": "CU" }
+        ],
+        "port": "ToCUs"
+      }
+    ],
+
+    "connections": [
+      {
+        "builder_package": ["github.com/sarchlab/akita/v4/sim/directconnection"],
+        "package": ["github.com/sarchlab/akita/v4/sim"],
+        "name": "ConnGPU1",
+        "params": [ { "name": "Freq", "value": 1, "unit": "GHz" } ],
+        "plugs": [
+          { "component": "CP",     "port": "ToDriver", "bandwidth": 1 },
+          { "component": "Driver", "port": "GPU",      "bandwidth": 1 }
+        ]
+      },
+
+      {
+        "builder_package": ["github.com/sarchlab/akita/v4/sim/directconnection"],
+        "package": ["github.com/sarchlab/akita/v4/sim"],
+        "name": "ConnCPToCU",
+        "params": [ { "name": "Freq", "value": 1, "unit": "GHz" } ],
+        "plugs": [
+          { "component": "CP", "port": "ToCUs", "bandwidth": 1 },
+          { "component": "CU", "port": "Top",   "bandwidth": 1 },
+          { "component": "CU", "port": "Ctrl",  "bandwidth": 1 }
+        ]
+      },
+
+      {
+        "builder_package": ["github.com/sarchlab/akita/v4/sim/directconnection"],
+        "package": ["github.com/sarchlab/akita/v4/sim"],
+        "name": "ConnCUToVROB",
+        "params": [ { "name": "Freq", "value": 1, "unit": "GHz" } ],
+        "plugs": [
+          { "component": "CU",   "port": "VectorMem", "bandwidth": 1 },
+          { "component": "VROB", "port": "Top",       "bandwidth": 1 }
+        ]
+      },
+
+      {
+        "builder_package": ["github.com/sarchlab/akita/v4/sim/directconnection"],
+        "package": ["github.com/sarchlab/akita/v4/sim"],
+        "name": "ConnCUToSROB",
+        "params": [ { "name": "Freq", "value": 1, "unit": "GHz" } ],
+        "plugs": [
+          { "component": "CU",   "port": "ScalarMem", "bandwidth": 1 },
+          { "component": "SROB", "port": "Top",       "bandwidth": 1 }
+        ]
+      },
+
+      {
+        "builder_package": ["github.com/sarchlab/akita/v4/sim/directconnection"],
+        "package": ["github.com/sarchlab/akita/v4/sim"],
+        "name": "ConnCUToIROB",
+        "params": [ { "name": "Freq", "value": 1, "unit": "GHz" } ],
+        "plugs": [
+          { "component": "CU",   "port": "InstMem", "bandwidth": 1 },
+          { "component": "IROB", "port": "Top",     "bandwidth": 1 }
+        ]
+      },
+
+      {
+        "builder_package": ["github.com/sarchlab/akita/v4/sim/directconnection"],
+        "package": ["github.com/sarchlab/akita/v4/sim"],
+        "name": "ConnVROBToVAT",
+        "params": [ { "name": "Freq", "value": 1, "unit": "GHz" } ],
+        "plugs": [
+          { "component": "VROB", "port": "Bottom", "bandwidth": 1 },
+          { "component": "VAT",  "port": "Top",    "bandwidth": 1 }
+        ]
+      },
+
+      {
+        "builder_package": ["github.com/sarchlab/akita/v4/sim/directconnection"],
+        "package": ["github.com/sarchlab/akita/v4/sim"],
+        "name": "ConnSROBToSAT",
+        "params": [ { "name": "Freq", "value": 1, "unit": "GHz" } ],
+        "plugs": [
+          { "component": "SROB", "port": "Bottom", "bandwidth": 1 },
+          { "component": "SAT",  "port": "Top",    "bandwidth": 1 }
+        ]
+      },
+
+      {
+        "builder_package": ["github.com/sarchlab/akita/v4/sim/directconnection"],
+        "package": ["github.com/sarchlab/akita/v4/sim"],
+        "name": "ConnIROBToIAT",
+        "params": [ { "name": "Freq", "value": 1, "unit": "GHz" } ],
+        "plugs": [
+          { "component": "IROB", "port": "Bottom", "bandwidth": 1 },
+          { "component": "IAT",  "port": "Top",    "bandwidth": 1 }
+        ]
+      },
+
+      {
+        "builder_package": ["github.com/sarchlab/akita/v4/sim/directconnection"],
+        "package": ["github.com/sarchlab/akita/v4/sim"],
+        "name": "ConnVATTranslationToVTLB",
+        "params": [ { "name": "Freq", "value": 1, "unit": "GHz" } ],
+        "plugs": [
+          { "component": "VAT",  "port": "Translation", "bandwidth": 1 },
+          { "component": "VTLB", "port": "Top",         "bandwidth": 1 }
+        ]
+      },
+
+      {
+        "builder_package": ["github.com/sarchlab/akita/v4/sim/directconnection"],
+        "package": ["github.com/sarchlab/akita/v4/sim"],
+        "name": "ConnSATTranslationToSTLB",
+        "params": [ { "name": "Freq", "value": 1, "unit": "GHz" } ],
+        "plugs": [
+          { "component": "SAT",  "port": "Translation", "bandwidth": 1 },
+          { "component": "STLB", "port": "Top",         "bandwidth": 1 }
+        ]
+      },
+
+      {
+        "builder_package": ["github.com/sarchlab/akita/v4/sim/directconnection"],
+        "package": ["github.com/sarchlab/akita/v4/sim"],
+        "name": "ConnIATTranslationToITLB",
+        "params": [ { "name": "Freq", "value": 1, "unit": "GHz" } ],
+        "plugs": [
+          { "component": "IAT",  "port": "Translation", "bandwidth": 1 },
+          { "component": "ITLB", "port": "Top",         "bandwidth": 1 }
+        ]
+      },
+
+      {
+        "builder_package": ["github.com/sarchlab/akita/v4/sim/directconnection"],
+        "package": ["github.com/sarchlab/akita/v4/sim"],
+        "name": "ConnVATToL1VCache",
+        "params": [ { "name": "Freq", "value": 1, "unit": "GHz" } ],
+        "plugs": [
+          { "component": "VAT",      "port": "Bottom", "bandwidth": 1 },
+          { "component": "L1VCache", "port": "Top",    "bandwidth": 1 }
+        ]
+      },
+
+      {
+        "builder_package": ["github.com/sarchlab/akita/v4/sim/directconnection"],
+        "package": ["github.com/sarchlab/akita/v4/sim"],
+        "name": "ConnSATToL1SCache",
+        "params": [ { "name": "Freq", "value": 1, "unit": "GHz" } ],
+        "plugs": [
+          { "component": "SAT",      "port": "Bottom", "bandwidth": 1 },
+          { "component": "L1SCache", "port": "Top",    "bandwidth": 1 }
+        ]
+      },
+
+      {
+        "builder_package": ["github.com/sarchlab/akita/v4/sim/directconnection"],
+        "package": ["github.com/sarchlab/akita/v4/sim"],
+        "name": "ConnIATToL1ICache",
+        "params": [ { "name": "Freq", "value": 1, "unit": "GHz" } ],
+        "plugs": [
+          { "component": "IAT",      "port": "Bottom", "bandwidth": 1 },
+          { "component": "L1ICache", "port": "Top",    "bandwidth": 1 }
+        ]
+      },
+
+      {
+        "builder_package": ["github.com/sarchlab/akita/v4/sim/directconnection"],
+        "package": ["github.com/sarchlab/akita/v4/sim"],
+        "name": "ConnL1ToL2",
+        "params": [ { "name": "Freq", "value": 1, "unit": "GHz" } ],
+        "plugs": [
+          { "component": "L1VCache", "port": "Bottom", "bandwidth": 1 },
+          { "component": "L1SCache", "port": "Bottom", "bandwidth": 1 },
+          { "component": "L1ICache", "port": "Bottom", "bandwidth": 1 },
+          { "component": "L2Cache",  "port": "Top",    "bandwidth": 1 }
+        ]
+      },
+
+      {
+        "builder_package": ["github.com/sarchlab/akita/v4/sim/directconnection"],
+        "package": ["github.com/sarchlab/akita/v4/sim"],
+        "name": "ConnL2AndDMAToMemCtrl",
+        "params": [ { "name": "Freq", "value": 1, "unit": "GHz" } ],
+        "plugs": [
+          { "component": "L2Cache", "port": "Bottom", "bandwidth": 1 },
+          { "component": "MemCtrl", "port": "Top",    "bandwidth": 1 }
+        ]
+      },
+
+      {
+        "builder_package": ["github.com/sarchlab/akita/v4/sim/directconnection"],
+        "package": ["github.com/sarchlab/akita/v4/sim"],
+        "name": "ConnVTLBToL2TLB",
+        "params": [ { "name": "Freq", "value": 1, "unit": "GHz" } ],
+        "plugs": [
+          { "component": "VTLB",  "port": "Bottom", "bandwidth": 1 },
+          { "component": "STLB",  "port": "Bottom", "bandwidth": 1 },
+          { "component": "ITLB",  "port": "Bottom", "bandwidth": 1 },
+          { "component": "L2TLB", "port": "Top",    "bandwidth": 1 }
+        ]
+      },
+
+      {
+        "builder_package": ["github.com/sarchlab/akita/v4/sim/directconnection"],
+        "package": ["github.com/sarchlab/akita/v4/sim"],
+        "name": "ConnL2TLBToIoMMU",
+        "params": [ { "name": "Freq", "value": 1, "unit": "GHz" } ],
+        "plugs": [
+          { "component": "L2TLB", "port": "Bottom", "bandwidth": 1 },
+          { "component": "IoMMU", "port": "Top",    "bandwidth": 1 }
+        ]
+      }
+    ]
+  },
+
+  "benchmark": {
+    "builder_package": ["github.com/sarchlab/yuzawa_example/ping/benchmarks/relu"],
+    "package": ["github.com/sarchlab/akita/v4/mem/mem"],
+    "params": [
+      { "name": "Length", "value": 4 }
+    ]
+  },
+
+  "trace": {
+    "enabled":   true,
+    "component": "MemCtrl",
+    "file":      "trace.log",
+    "package": [
+      "log",
+      "os",
+      "github.com/sarchlab/akita/v4/mem/trace",
+      "github.com/sarchlab/akita/v4/tracing"
+    ]
+  },
+
+  "seed": 0
+}
