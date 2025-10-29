@@ -1,0 +1,32 @@
+{
+  "name": "WriteThrough",
+  "description": "Write through cache agent for simulation testing.",
+  "ports": [
+    {
+      "name": "Top"
+    }
+  ],
+  "parameters": [
+    {
+      "name": "frequency",
+      "type": "float",
+      "unit": "Hz",
+      "default": 1000000000
+    },
+    {
+      "name": "wayAssociativity",
+      "type": "int",
+      "default": 2
+    },
+    {
+      "name": "numReqPerCycle",
+      "type": "int",
+      "default": 2
+    },
+    {
+      "name": "remotePorts",
+      "type": "port",
+      "default": "null"
+    }
+  ]
+}
