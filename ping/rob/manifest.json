@@ -1,0 +1,35 @@
+{
+  "name": "ROB",
+  "description": "Reorder Buffer component for simulation testing.",
+  "ports": [
+    {
+      "name": "Top"
+    },
+    {
+      "name": "Bottom"
+    }
+  ],
+  "parameters": [
+    {
+      "name": "frequency",
+      "type": "float",
+      "unit": "Hz",
+      "default": 1000000000
+    },
+    {
+      "name": "numReqPerCycle",
+      "type": "int",
+      "default": 4
+    },
+    {
+      "name": "bufferSize",
+      "type": "int",
+      "default": 128
+    },
+    {
+      "name": "bottomUnit",
+      "type": "port",
+      "default": "null"
+    }
+  ]
+}

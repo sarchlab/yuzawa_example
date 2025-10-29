@@ -1,0 +1,32 @@
+{
+  "name": "IoMMU",
+  "description": "IO Memory Management Unit for simulation testing.",
+  "ports": [
+    {
+      "name": "Top"
+    }
+  ],
+  "parameters": [
+    {
+      "name": "frequency",
+      "type": "float",
+      "unit": "Hz",
+      "default": 1000000000
+    },
+    {
+      "name": "log2PageSize",
+      "type": "int",
+      "default": 12
+    },
+    {
+      "name": "maxNumReqInFlight",
+      "type": "int",
+      "default": 16
+    },
+    {
+      "name": "pageWalkingLatency",
+      "type": "int",
+      "default": 10
+    }
+  ]
+}

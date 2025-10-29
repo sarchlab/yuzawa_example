@@ -1,0 +1,47 @@
+{
+  "name": "TLB",
+  "description": "Translation Lookaside Buffer for virtual memory simulation.",
+  "ports": [
+    {
+      "name": "Top"
+    }
+  ],
+  "parameters": [
+    {
+      "name": "frequency",
+      "type": "float",
+      "unit": "Hz",
+      "default": 1000000000
+    },
+    {
+      "name": "numWays",
+      "type": "int",
+      "default": 8
+    },
+    {
+      "name": "numSets",
+      "type": "int",
+      "default": 8
+    },
+    {
+      "name": "pageSize",
+      "type": "int",
+      "default": 4096
+    },
+    {
+      "name": "numReqPerCycle",
+      "type": "int",
+      "default": 2
+    },
+    {
+      "name": "addressMapperType",
+      "type": "string",
+      "default": "single"
+    },
+    {
+      "name": "remotePorts",
+      "type": "port",
+      "default": "null"
+    }
+  ]
+}

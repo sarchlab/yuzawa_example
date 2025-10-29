@@ -1,0 +1,37 @@
+{
+  "name": "AddressTranslator",
+  "description": "Address Translator component for virtual memory simulation.",
+  "ports": [
+    {
+      "name": "Top"
+    }
+  ],
+  "parameters": [
+    {
+      "name": "frequency",
+      "type": "float",
+      "unit": "Hz",
+      "default": 1000000000
+    },
+    {
+      "name": "log2PageSize",
+      "type": "int",
+      "default": 12
+    },
+    {
+      "name": "translationProvider",
+      "type": "port",
+      "default": "null"
+    },
+    {
+      "name": "remotePorts",
+      "type": "port",
+      "default": "null"
+    },
+    {
+      "name": "addressMapperType",
+      "type": "string",
+      "default": "single"
+    }
+  ]
+}
