@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/sarchlab/akita/v4/simulation"
+	"github.com/sarchlab/yuzawa_example/metrics_reporter"
 	"github.com/sarchlab/yuzawa_example/ping/memaccessagent"
 )
 
@@ -17,6 +18,9 @@ type Benchmark struct {
 }
 
 func (b *Benchmark) Run() {
+	// Set up metrics reporter
+	metricsReporter := metrics_reporter.NewReporter(b.simulation)
+
 	engine := b.simulation.GetEngine()
 	agent := b.simulation.GetComponentByName("MemAgent").(*memaccessagent.MemAccessAgent)
 
@@ -28,7 +32,7 @@ func (b *Benchmark) Run() {
 	agent.WriteLeft = b.numAccess
 	agent.ReadLeft = b.numAccess
 	agent.MaxAddress = b.maxAddress
-	agent.UseVirtualAddress = true
+	agent.UseVirtualAddress = false
 
 	agent.TickLater()
 	err := engine.Run()
@@ -46,4 +50,7 @@ func (b *Benchmark) Run() {
 
 	fmt.Printf("End time: %.10f seconds\n",
 		engine.CurrentTime())
+
+	// Report metrics before completing
+	metricsReporter.Report()
 }
