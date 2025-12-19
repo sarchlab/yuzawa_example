@@ -1,6 +1,6 @@
 {
-  "name": "IoMMU",
-  "description": "IO Memory Management Unit for simulation testing.",
+  "name": "MMU",
+  "description": "Memory Management Unit for simulation testing.",
   "ports": [
     {
       "name": "Top"

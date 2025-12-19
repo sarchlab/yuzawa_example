@@ -1,14 +1,43 @@
 {
   "name": "Driver",
   "description": "AMD GPU driver component.",
+  "builder_package": "github.com/sarchlab/mgpusim/amd/driver",
   "ports": [
-    { "name": "GPU" }
+    {
+      "name": "GPU"
+    }
   ],
   "parameters": [
-    { "name": "frequency",                   "type": "float",     "unit": "Hz",   "default": 1000000000 },
-    { "name": "log2PageSize",                "type": "int",                       "default": 12 },
-    { "name": "pageTable",                   "type": "pageTable",                  "default": null },
-    { "name": "globalStorageBytes",          "type": "uint64",                    "default": 17179869184 },
-    { "name": "magicMemoryCopyMiddleware",   "type": "bool",                      "default": true }
+    {
+      "name": "frequency",
+      "type": "float",
+      "unit": "Hz",
+      "default": 1000000000
+    },
+    {
+      "name": "log2PageSize",
+      "type": "int",
+      "default": 12
+    },
+    {
+      "name": "GlobalStorage",
+      "type": "storage",
+      "default": "SharedStorage"
+    },
+    {
+      "name": "PageTable",
+      "type": "pageTable",
+      "default": "PageTable"
+    },
+    {
+      "name": "globalStorageBytes",
+      "type": "uint64",
+      "default": 17179869184
+    },
+    {
+      "name": "magicMemoryCopyMiddleware",
+      "type": "bool",
+      "default": true
+    }
   ]
 }

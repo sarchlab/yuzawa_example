@@ -37,12 +37,22 @@
       "default": 2
     },
     {
+      "name": "addressMapperType",
+      "type": "string",
+      "default": "single"
+    },
+    {
       "name": "translationProviderMapperType",
       "type": "string",
       "default": "single"
     },
     {
       "name": "translationProviders",
+      "type": "port",
+      "default": "null"
+    },
+    {
+      "name": "remotePorts",
       "type": "port",
       "default": "null"
     }
