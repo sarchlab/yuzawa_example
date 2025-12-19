@@ -4,7 +4,7 @@ go 1.25
 
 require (
 	github.com/sarchlab/akita/v4 v4.7.0
-	github.com/sarchlab/mgpusim/v4 v4.1.3
+	github.com/sarchlab/mgpusim/v4 v4.1.4
 	github.com/sarchlab/yuzawa_example v0.0.0-20250714172439-b5f5f4cad99e
 )
 

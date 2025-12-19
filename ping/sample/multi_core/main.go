@@ -30,6 +30,7 @@ func main() {
 
 	sharedStorage := mem.NewStorage(16 * mem.GB)
 
+	// Memory Controller
 	MemCtrl := idealmemcontroller.MakeBuilder().
 		WithEngine(engine).
 		WithStorage(sharedStorage).
@@ -37,6 +38,7 @@ func main() {
 		Build("MemCtrl")
 	s.RegisterComponent(MemCtrl)
 
+	// L2 Cache
 	L2Cache := writethrough.MakeBuilder().
 		WithEngine(engine).
 		WithFreq(1 * sim.GHz).
@@ -47,6 +49,7 @@ func main() {
 		Build("L2Cache")
 	s.RegisterComponent(L2Cache)
 
+	// L1 Caches for each core
 	L1VCache := writearound.MakeBuilder().
 		WithEngine(engine).
 		WithFreq(1 * sim.GHz).
@@ -81,6 +84,7 @@ func main() {
 		Build("L1ICache")
 	s.RegisterComponent(L1ICache)
 
+	// Page Table
 	pageTable := vm.NewPageTable(12)
 	IoMMU := mmu.MakeBuilder().
 		WithEngine(engine).
@@ -92,6 +96,7 @@ func main() {
 		Build("IoMMU")
 	s.RegisterComponent(IoMMU)
 
+	// TLB hierarchy
 	L2TLB := tlb.MakeBuilder().
 		WithEngine(engine).
 		WithFreq(1 * sim.GHz).
@@ -140,6 +145,7 @@ func main() {
 		Build("ITLB")
 	s.RegisterComponent(ITLB)
 
+	// Address Translators
 	VAT := addresstranslator.MakeBuilder().
 		WithEngine(engine).
 		WithFreq(1 * sim.GHz).
@@ -176,6 +182,7 @@ func main() {
 		Build("IAT")
 	s.RegisterComponent(IAT)
 
+	// ROBs
 	VROB := rob.MakeBuilder().
 		WithEngine(engine).
 		WithFreq(1 * sim.GHz).
@@ -203,7 +210,8 @@ func main() {
 		Build("IROB")
 	s.RegisterComponent(IROB)
 
-	CU := cu.MakeBuilder().
+	// Multiple CUs (4 cores)
+	CU0 := cu.MakeBuilder().
 		WithEngine(engine).
 		WithFreq(1 * sim.GHz).
 		WithVGPRCount([]int{32768, 32768, 32768, 32768}).
@@ -213,9 +221,49 @@ func main() {
 			Port: VROB.GetPortByName("Top").AsRemote(),
 		}).
 		WithSIMDCount(4).
-		Build("CU")
-	s.RegisterComponent(CU)
+		Build("CU0")
+	s.RegisterComponent(CU0)
 
+	CU1 := cu.MakeBuilder().
+		WithEngine(engine).
+		WithFreq(1 * sim.GHz).
+		WithVGPRCount([]int{32768, 32768, 32768, 32768}).
+		WithInstMem(IROB.GetPortByName("Top")).
+		WithScalarMem(SROB.GetPortByName("Top")).
+		WithVectorMemModules(&mem.SinglePortMapper{
+			Port: VROB.GetPortByName("Top").AsRemote(),
+		}).
+		WithSIMDCount(4).
+		Build("CU1")
+	s.RegisterComponent(CU1)
+
+	CU2 := cu.MakeBuilder().
+		WithEngine(engine).
+		WithFreq(1 * sim.GHz).
+		WithVGPRCount([]int{32768, 32768, 32768, 32768}).
+		WithInstMem(IROB.GetPortByName("Top")).
+		WithScalarMem(SROB.GetPortByName("Top")).
+		WithVectorMemModules(&mem.SinglePortMapper{
+			Port: VROB.GetPortByName("Top").AsRemote(),
+		}).
+		WithSIMDCount(4).
+		Build("CU2")
+	s.RegisterComponent(CU2)
+
+	CU3 := cu.MakeBuilder().
+		WithEngine(engine).
+		WithFreq(1 * sim.GHz).
+		WithVGPRCount([]int{32768, 32768, 32768, 32768}).
+		WithInstMem(IROB.GetPortByName("Top")).
+		WithScalarMem(SROB.GetPortByName("Top")).
+		WithVectorMemModules(&mem.SinglePortMapper{
+			Port: VROB.GetPortByName("Top").AsRemote(),
+		}).
+		WithSIMDCount(4).
+		Build("CU3")
+	s.RegisterComponent(CU3)
+
+	// Driver
 	Driver := driver.MakeBuilder().
 		WithEngine(engine).
 		WithFreq(1 * sim.GHz).
@@ -226,14 +274,15 @@ func main() {
 		Build("Driver")
 	s.RegisterComponent(Driver)
 
+	// Command Processor
 	CP := cp.MakeBuilder().
 		WithEngine(engine).
 		WithFreq(1 * sim.GHz).
-		WithDriver(Driver.GetPortByName("GPU")).
-		WithCU(CU).
+		WithCU(CU0). // Primary CU
 		Build("CP")
 	s.RegisterComponent(CP)
 
+	// Connections
 	ConnGPU1 := directconnection.MakeBuilder().
 		WithEngine(engine).
 		WithFreq(1 * sim.GHz).
@@ -241,35 +290,53 @@ func main() {
 	ConnGPU1.PlugIn(CP.GetPortByName("ToDriver"))
 	ConnGPU1.PlugIn(Driver.GetPortByName("GPU"))
 
-	ConnCPToCU := directconnection.MakeBuilder().
+	// Connect CP to all CUs using a single connection
+	ConnCPToCUs := directconnection.MakeBuilder().
 		WithEngine(engine).
 		WithFreq(1 * sim.GHz).
-		Build("ConnCPToCU")
-	ConnCPToCU.PlugIn(CP.GetPortByName("ToCUs"))
-	ConnCPToCU.PlugIn(CU.GetPortByName("Top"))
-	ConnCPToCU.PlugIn(CU.GetPortByName("Ctrl"))
+		Build("ConnCPToCUs")
+	ConnCPToCUs.PlugIn(CP.GetPortByName("ToCUs"))
+	ConnCPToCUs.PlugIn(CU0.GetPortByName("Top"))
+	ConnCPToCUs.PlugIn(CU0.GetPortByName("Ctrl"))
+	ConnCPToCUs.PlugIn(CU1.GetPortByName("Top"))
+	ConnCPToCUs.PlugIn(CU1.GetPortByName("Ctrl"))
+	ConnCPToCUs.PlugIn(CU2.GetPortByName("Top"))
+	ConnCPToCUs.PlugIn(CU2.GetPortByName("Ctrl"))
+	ConnCPToCUs.PlugIn(CU3.GetPortByName("Top"))
+	ConnCPToCUs.PlugIn(CU3.GetPortByName("Ctrl"))
 
-	ConnCUToVROB := directconnection.MakeBuilder().
+	// Connect CUs to ROBs using single connections
+	ConnCUsToVROB := directconnection.MakeBuilder().
 		WithEngine(engine).
 		WithFreq(1 * sim.GHz).
-		Build("ConnCUToVROB")
-	ConnCUToVROB.PlugIn(CU.GetPortByName("VectorMem"))
-	ConnCUToVROB.PlugIn(VROB.GetPortByName("Top"))
+		Build("ConnCUsToVROB")
+	ConnCUsToVROB.PlugIn(CU0.GetPortByName("VectorMem"))
+	ConnCUsToVROB.PlugIn(CU1.GetPortByName("VectorMem"))
+	ConnCUsToVROB.PlugIn(CU2.GetPortByName("VectorMem"))
+	ConnCUsToVROB.PlugIn(CU3.GetPortByName("VectorMem"))
+	ConnCUsToVROB.PlugIn(VROB.GetPortByName("Top"))
 
-	ConnCUToSROB := directconnection.MakeBuilder().
+	ConnCUsToSROB := directconnection.MakeBuilder().
 		WithEngine(engine).
 		WithFreq(1 * sim.GHz).
-		Build("ConnCUToSROB")
-	ConnCUToSROB.PlugIn(CU.GetPortByName("ScalarMem"))
-	ConnCUToSROB.PlugIn(SROB.GetPortByName("Top"))
+		Build("ConnCUsToSROB")
+	ConnCUsToSROB.PlugIn(CU0.GetPortByName("ScalarMem"))
+	ConnCUsToSROB.PlugIn(CU1.GetPortByName("ScalarMem"))
+	ConnCUsToSROB.PlugIn(CU2.GetPortByName("ScalarMem"))
+	ConnCUsToSROB.PlugIn(CU3.GetPortByName("ScalarMem"))
+	ConnCUsToSROB.PlugIn(SROB.GetPortByName("Top"))
 
-	ConnCUToIROB := directconnection.MakeBuilder().
+	ConnCUsToIROB := directconnection.MakeBuilder().
 		WithEngine(engine).
 		WithFreq(1 * sim.GHz).
-		Build("ConnCUToIROB")
-	ConnCUToIROB.PlugIn(CU.GetPortByName("InstMem"))
-	ConnCUToIROB.PlugIn(IROB.GetPortByName("Top"))
+		Build("ConnCUsToIROB")
+	ConnCUsToIROB.PlugIn(CU0.GetPortByName("InstMem"))
+	ConnCUsToIROB.PlugIn(CU1.GetPortByName("InstMem"))
+	ConnCUsToIROB.PlugIn(CU2.GetPortByName("InstMem"))
+	ConnCUsToIROB.PlugIn(CU3.GetPortByName("InstMem"))
+	ConnCUsToIROB.PlugIn(IROB.GetPortByName("Top"))
 
+	// Connect ROBs to Address Translators
 	ConnVROBToVAT := directconnection.MakeBuilder().
 		WithEngine(engine).
 		WithFreq(1 * sim.GHz).
@@ -291,6 +358,7 @@ func main() {
 	ConnIROBToIAT.PlugIn(IROB.GetPortByName("Bottom"))
 	ConnIROBToIAT.PlugIn(IAT.GetPortByName("Top"))
 
+	// Connect Address Translators to TLBs
 	ConnVATTranslationToVTLB := directconnection.MakeBuilder().
 		WithEngine(engine).
 		WithFreq(1 * sim.GHz).
@@ -312,6 +380,7 @@ func main() {
 	ConnIATTranslationToITLB.PlugIn(IAT.GetPortByName("Translation"))
 	ConnIATTranslationToITLB.PlugIn(ITLB.GetPortByName("Top"))
 
+	// Connect Address Translators to L1 Caches
 	ConnVATToL1VCache := directconnection.MakeBuilder().
 		WithEngine(engine).
 		WithFreq(1 * sim.GHz).
@@ -333,6 +402,7 @@ func main() {
 	ConnIATToL1ICache.PlugIn(IAT.GetPortByName("Bottom"))
 	ConnIATToL1ICache.PlugIn(L1ICache.GetPortByName("Top"))
 
+	// Connect L1 Caches to L2 Cache
 	ConnL1ToL2 := directconnection.MakeBuilder().
 		WithEngine(engine).
 		WithFreq(1 * sim.GHz).
@@ -342,6 +412,7 @@ func main() {
 	ConnL1ToL2.PlugIn(L1ICache.GetPortByName("Bottom"))
 	ConnL1ToL2.PlugIn(L2Cache.GetPortByName("Top"))
 
+	// Connect L2 Cache to Memory Controller
 	ConnL2AndDMAToMemCtrl := directconnection.MakeBuilder().
 		WithEngine(engine).
 		WithFreq(1 * sim.GHz).
@@ -349,6 +420,7 @@ func main() {
 	ConnL2AndDMAToMemCtrl.PlugIn(L2Cache.GetPortByName("Bottom"))
 	ConnL2AndDMAToMemCtrl.PlugIn(MemCtrl.GetPortByName("Top"))
 
+	// Connect TLBs to L2TLB
 	ConnTLBToL2TLB := directconnection.MakeBuilder().
 		WithEngine(engine).
 		WithFreq(1 * sim.GHz).
@@ -358,6 +430,7 @@ func main() {
 	ConnTLBToL2TLB.PlugIn(ITLB.GetPortByName("Bottom"))
 	ConnTLBToL2TLB.PlugIn(L2TLB.GetPortByName("Top"))
 
+	// Connect L2TLB to IoMMU
 	ConnL2TLBToIoMMU := directconnection.MakeBuilder().
 		WithEngine(engine).
 		WithFreq(1 * sim.GHz).
@@ -365,6 +438,7 @@ func main() {
 	ConnL2TLBToIoMMU.PlugIn(L2TLB.GetPortByName("Bottom"))
 	ConnL2TLBToIoMMU.PlugIn(IoMMU.GetPortByName("Top"))
 
+	// Tracing
 	traceFile, err := os.Create("trace.log")
 	if err != nil {
 		panic("Error: Failed to create trace file")
@@ -373,6 +447,16 @@ func main() {
 	tracer := trace.NewTracer(logger, engine)
 	tracing.CollectTrace(MemCtrl, tracer)
 
+	// Register all CUs with the driver
+	Driver.RegisterGPU(CP.GetPortByName("ToDriver"), driver.DeviceProperties{
+		CUCount:  4, // 4 CUs
+		DRAMSize: 4 * mem.GB,
+	})
+
+	// Set up CP-Driver connection
+	CP.Driver = Driver.GetPortByName("GPU")
+
+	// Run benchmark
 	benchmark := relu.MakeBuilder().
 		WithSimulation(s).
 		WithLength(4).

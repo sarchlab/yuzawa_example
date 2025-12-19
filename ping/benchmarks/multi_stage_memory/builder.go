@@ -7,7 +7,7 @@ import (
 // Builder helps in setting up the memory controller simulation.
 type Builder struct {
 	simulation *simulation.Simulation
-	numAccess int
+	numAccess  int
 	maxAddress uint64
 }
 
@@ -37,9 +37,9 @@ func (b *Builder) WithMaxAddress(a uint64) *Builder {
 // Build creates a new Benchmark.
 func (b *Builder) Build(name string) *Benchmark {
 	return &Benchmark{
-		name:              name,
+		name:       name,
 		simulation: b.simulation,
-		numAccess: b.numAccess,
+		numAccess:  b.numAccess,
 		maxAddress: b.maxAddress,
 	}
 }

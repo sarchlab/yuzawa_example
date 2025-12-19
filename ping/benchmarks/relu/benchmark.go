@@ -6,6 +6,7 @@ import (
 	"github.com/sarchlab/akita/v4/simulation"
 	"github.com/sarchlab/mgpusim/v4/amd/benchmarks/dnn/layer_benchmarks/relu"
 	"github.com/sarchlab/mgpusim/v4/amd/driver"
+	"github.com/sarchlab/yuzawa_example/metrics_reporter"
 )
 
 type Benchmark struct {
@@ -25,6 +26,9 @@ func (b *Benchmark) Run() {
 	}
 	d := driverComp.(*driver.Driver)
 
+	// Set up metrics reporter (standalone version of mgpusim's reporter)
+	metricsReporter := metrics_reporter.NewReporter(b.sim)
+
 	// Start the driver
 	d.Run()
 
@@ -39,4 +43,9 @@ func (b *Benchmark) Run() {
 
 	// Terminate the driver
 	d.Terminate()
+
+	// Report metrics before completing
+	metricsReporter.Report()
+
+	log.Println("Simulation completed")
 }
