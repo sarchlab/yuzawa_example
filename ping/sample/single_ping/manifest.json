@@ -1,0 +1,6 @@
+{
+  "name": "Single Ping",
+  "description": "A simple ping benchmark",
+  "params": [],
+  "dependencies": []
+}
