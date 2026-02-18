@@ -1,6 +1,9 @@
 {
-    
     "main_package": "single_ping",
+    "parameters": [
+        { "name": "Sender", "type": "senders" },
+        { "name": "Receiver", "type": "receiver" }
+    ],
     "dependencies": [
         {
             "name": "akita",
