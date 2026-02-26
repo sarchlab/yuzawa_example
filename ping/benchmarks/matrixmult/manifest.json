@@ -1,0 +1,19 @@
+{
+  "main_package": "matrixmult",
+  "dependencies": [
+    { "name": "akita", "version": "v4", "repository": "https://github.com/sarchlab/akita" },
+    { "name": "mgpusim", "version": "v4", "repository": "https://github.com/sarchlab/mgpusim" }
+  ],
+  "files": [
+    { "path": "benchmarks/matrixmult/benchmark.go" },
+    { "path": "benchmarks/matrixmult/builder.go" }
+  ],
+  "modules": [
+    { "name": "matrixmult", "path": "/benchmarks/matrixmult", "files": ["benchmark.go", "builder.go"] }
+  ],
+  "parameters": [
+    { "name": "x", "type": "int", "default": 64 },
+    { "name": "y", "type": "int", "default": 64 },
+    { "name": "z", "type": "int", "default": 64 }
+  ]
+}

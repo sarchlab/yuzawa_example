@@ -1,63 +1,21 @@
 {
   "name": "AddressTranslator",
   "description": "Address Translator aligned with Akita's addresstranslator builder.",
+  "builder_package": "github.com/sarchlab/akita/v4/mem/vm/addresstranslator",
   "ports": [
-    {
-      "name": "Top"
-    },
-    {
-      "name": "Translation"
-    },
-    {
-      "name": "Bottom"
-    }
+    { "name": "Top" },
+    { "name": "Translation" },
+    { "name": "Bottom" }
   ],
   "parameters": [
-    {
-      "name": "frequency",
-      "type": "float",
-      "unit": "Hz",
-      "default": 1000000000
-    },
-    {
-      "name": "log2PageSize",
-      "type": "int",
-      "default": 12
-    },
-    {
-      "name": "deviceID",
-      "type": "int",
-      "default": 0
-    },
-    {
-      "name": "translationProviderMapperType",
-      "type": "string",
-      "default": "single"
-    },
-    {
-      "name": "translationProviders",
-      "type": "port",
-      "default": "null"
-    },
-    {
-      "name": "memoryProviderType",
-      "type": "string",
-      "default": "single"
-    },
-    {
-      "name": "memoryProviders",
-      "type": "port",
-      "default": "null"
-    },
-    {
-      "name": "remotePorts",
-      "type": "port",
-      "default": "null"
-    },
-    {
-      "name": "addressMapperType",
-      "type": "string",
-      "default": "single"
-    }
+    { "name": "frequency",                      "type": "float",  "unit": "Hz", "default": 1000000000 },
+    { "name": "log2PageSize",                    "type": "int",                  "default": 12 },
+    { "name": "deviceID",                        "type": "int",                  "default": 0 },
+    { "name": "translationProviderMapperType",   "type": "string",               "default": "single" },
+    { "name": "translationProviders",            "type": "port",                 "default": "null" },
+    { "name": "memoryProviderType",              "type": "string",               "default": "single" },
+    { "name": "memoryProviders",                 "type": "port",                 "default": "null" },
+    { "name": "remotePorts",                     "type": "port",                 "default": "null", "codegen": false },
+    { "name": "addressMapperType",               "type": "string",               "default": "single", "codegen": false }
   ]
 }

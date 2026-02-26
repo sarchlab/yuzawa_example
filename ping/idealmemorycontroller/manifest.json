@@ -1,21 +1,12 @@
 {
   "name": "IdealMemoryController",
   "description": "Ideal memory controller for simulation testing.",
+  "builder_package": "github.com/sarchlab/akita/v4/mem/idealmemcontroller",
   "ports": [
-    {
-      "name": "Top"
-    }
+    { "name": "Top" }
   ],
   "parameters": [
-    {
-      "name": "Storage",
-      "type": "storage",
-      "default": "SharedStorage"
-    },
-    {
-      "name": "Latency",
-      "type": "int",
-      "default": 100
-    }
+    { "name": "Storage", "type": "storage", "default": "SharedStorage" },
+    { "name": "Latency", "type": "int",     "default": 100 }
   ]
 }

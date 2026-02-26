@@ -1,37 +1,15 @@
 {
   "name": "MMU",
   "description": "Memory Management Unit for simulation testing.",
+  "builder_package": "github.com/sarchlab/akita/v4/mem/vm/mmu",
   "ports": [
-    {
-      "name": "Top"
-    }
+    { "name": "Top" }
   ],
   "parameters": [
-    {
-      "name": "frequency",
-      "type": "float",
-      "unit": "Hz",
-      "default": 1000000000
-    },
-    {
-      "name": "log2PageSize",
-      "type": "int",
-      "default": 12
-    },
-    {
-      "name": "pageTable",
-      "type": "pageTable",
-      "default": null
-    },
-    {
-      "name": "maxNumReqInFlight",
-      "type": "int",
-      "default": 16
-    },
-    {
-      "name": "pageWalkingLatency",
-      "type": "int",
-      "default": 10
-    }
+    { "name": "frequency",          "type": "float",     "unit": "Hz", "default": 1000000000 },
+    { "name": "log2PageSize",       "type": "int",                     "default": 12 },
+    { "name": "pageTable",          "type": "pageTable",               "default": null },
+    { "name": "maxNumReqInFlight",  "type": "int",                     "default": 16 },
+    { "name": "pageWalkingLatency", "type": "int",                     "default": 10 }
   ]
 }

@@ -1,45 +1,17 @@
 {
   "name": "WriteThrough",
   "description": "Write-through cache component aligned with Akita's writethrough builder.",
+  "builder_package": "github.com/sarchlab/akita/v4/mem/cache/writethrough",
   "ports": [
-    {
-      "name": "Top"
-    },
-    {
-      "name": "Bottom"
-    }
+    { "name": "Top" },
+    { "name": "Bottom" }
   ],
   "parameters": [
-    {
-      "name": "frequency",
-      "type": "float",
-      "unit": "Hz",
-      "default": 1000000000
-    },
-    {
-      "name": "wayAssociativity",
-      "type": "int",
-      "default": 2
-    },
-    {
-      "name": "numReqPerCycle",
-      "type": "int",
-      "default": 2
-    },
-    {
-      "name": "log2BlockSize",
-      "type": "int",
-      "default": 6
-    },
-    {
-      "name": "addressMapperType",
-      "type": "string",
-      "default": "single"
-    },
-    {
-      "name": "remotePorts",
-      "type": "port",
-      "default": "null"
-    }
+    { "name": "frequency",        "type": "float",  "unit": "Hz", "default": 1000000000 },
+    { "name": "wayAssociativity", "type": "int",                  "default": 2 },
+    { "name": "numReqsPerCycle",  "type": "int",                  "default": 2 },
+    { "name": "log2BlockSize",    "type": "int",                  "default": 6 },
+    { "name": "addressMapperType","type": "string",               "default": "single" },
+    { "name": "remotePorts",      "type": "port",                 "default": "null" }
   ]
 }

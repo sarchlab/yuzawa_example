@@ -1,0 +1,17 @@
+{
+  "main_package": "fir",
+  "dependencies": [
+    { "name": "akita", "version": "v4", "repository": "https://github.com/sarchlab/akita" },
+    { "name": "mgpusim", "version": "v4", "repository": "https://github.com/sarchlab/mgpusim" }
+  ],
+  "files": [
+    { "path": "benchmarks/fir/benchmark.go" },
+    { "path": "benchmarks/fir/builder.go" }
+  ],
+  "modules": [
+    { "name": "fir", "path": "/benchmarks/fir", "files": ["benchmark.go", "builder.go"] }
+  ],
+  "parameters": [
+    { "name": "length", "type": "int", "default": 4096 }
+  ]
+}

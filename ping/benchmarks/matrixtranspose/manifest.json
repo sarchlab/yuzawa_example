@@ -1,0 +1,17 @@
+{
+  "main_package": "matrixtranspose",
+  "dependencies": [
+    { "name": "akita", "version": "v4", "repository": "https://github.com/sarchlab/akita" },
+    { "name": "mgpusim", "version": "v4", "repository": "https://github.com/sarchlab/mgpusim" }
+  ],
+  "files": [
+    { "path": "benchmarks/matrixtranspose/benchmark.go" },
+    { "path": "benchmarks/matrixtranspose/builder.go" }
+  ],
+  "modules": [
+    { "name": "matrixtranspose", "path": "/benchmarks/matrixtranspose", "files": ["benchmark.go", "builder.go"] }
+  ],
+  "parameters": [
+    { "name": "width", "type": "int", "default": 256 }
+  ]
+}

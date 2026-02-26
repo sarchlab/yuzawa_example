@@ -1,13 +1,10 @@
 {
   "name": "CP",
   "description": "AMD Command Processor.",
+  "builder_package": "github.com/sarchlab/mgpusim/v4/amd/timing/cp",
   "ports": [
-    {
-      "name": "ToCUs"
-    },
-    {
-      "name": "ToDriver"
-    }
+    { "name": "ToCUs" },
+    { "name": "ToDriver" }
   ],
   "parameters": [
     {
@@ -19,7 +16,8 @@
     {
       "name": "CU",
       "type": "component",
-      "default": "CU"
+      "default": "CU",
+      "codegen": false
     }
   ]
 }

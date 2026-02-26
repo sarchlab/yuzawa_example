@@ -1,6 +1,7 @@
 {
   "name": "CU",
   "description": "AMD Compute Unit component.",
+  "builder_package": "github.com/sarchlab/mgpusim/v4/amd/timing/cu",
   "ports": [
     { "name": "Top" },
     { "name": "Ctrl" },
@@ -9,11 +10,11 @@
     { "name": "InstMem" }
   ],
   "parameters": [
-    { "name": "frequency",   "type": "float",  "unit": "Hz",  "default": 1000000000 },
-    { "name": "vgprCount",   "type": "int[]",                  "default": [32768, 32768, 32768, 32768] },
-    { "name": "instMem",     "type": "port",                   "default": "null" },
-    { "name": "scalarMem",   "type": "port",                   "default": "null" },
-    { "name": "vectorMem",   "type": "port",                   "default": "null" },
-    { "name": "simdCount",   "type": "int",                    "default": 4 }
+    { "name": "frequency",  "type": "float", "unit": "Hz", "default": 1000000000 },
+    { "name": "VGPRCount",  "type": "int[]",               "default": [32768, 32768, 32768, 32768] },
+    { "name": "instMem",    "type": "port",                 "default": "null", "codegen": false },
+    { "name": "scalarMem",  "type": "port",                 "default": "null", "codegen": false },
+    { "name": "vectorMem",  "type": "port",                 "default": "null", "codegen": false },
+    { "name": "SIMDCount",  "type": "int",                  "default": 4 }
   ]
 }

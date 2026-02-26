@@ -1,13 +1,10 @@
 {
   "name": "ROB",
   "description": "Reorder Buffer component for simulation testing.",
+  "builder_package": "github.com/sarchlab/mgpusim/v4/amd/timing/rob",
   "ports": [
-    {
-      "name": "Top"
-    },
-    {
-      "name": "Bottom"
-    }
+    { "name": "Top" },
+    { "name": "Bottom" }
   ],
   "parameters": [
     {
@@ -29,7 +26,8 @@
     {
       "name": "bottomUnit",
       "type": "port",
-      "default": "null"
+      "default": "null",
+      "codegen": false
     }
   ]
 }
