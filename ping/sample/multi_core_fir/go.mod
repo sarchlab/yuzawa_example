@@ -1,10 +1,11 @@
-module github.com/sarchlab/yuzawa_example
+module multi_core
 
 go 1.25
 
 require (
-	github.com/sarchlab/akita/v4 v4.9.0
-	github.com/sarchlab/mgpusim/v4 v4.1.6-0.20260112223323-a619763bc41b
+	github.com/sarchlab/akita/v4 v4.7.0
+	github.com/sarchlab/mgpusim/v4 v4.1.3
+	github.com/sarchlab/yuzawa_example v0.0.0
 )
 
 require (
@@ -23,9 +24,8 @@ require (
 	golang.org/x/sys v0.35.0 // indirect
 )
 
-// replace github.com/sarchlab/akita/v4 => ../akita
+replace github.com/sarchlab/akita/v4 => /Users/sabilaaljannat/akita
 
-// replace (
-// 	github.com/sarchlab/akita/v4 => /Users/sabilaaljannat/akita
-// 	github.com/sarchlab/mgpusim/v4 => /Users/sabilaaljannat/mgpusim
-// )
+replace github.com/sarchlab/mgpusim/v4 => /Users/sabilaaljannat/mgpusim
+
+replace github.com/sarchlab/yuzawa_example => /Users/sabilaaljannat/yuzawa_example
