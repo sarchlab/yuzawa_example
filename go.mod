@@ -3,15 +3,19 @@ module github.com/sarchlab/yuzawa_example
 go 1.25
 
 require (
-	github.com/sarchlab/akita/v4 v4.9.0
-	github.com/sarchlab/mgpusim/v4 v4.1.6-0.20260112223323-a619763bc41b
+	github.com/sarchlab/akita/v4 v4.9.2
+	github.com/sarchlab/mgpusim/v4 v4.2.0
 )
 
 require (
+	github.com/dustin/go-humanize v1.0.1 // indirect
+	github.com/glebarez/go-sqlite v1.22.0 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/google/pprof v0.0.0-20250820193118-f64d9cf942d6 // indirect
+	github.com/google/uuid v1.5.0 // indirect
 	github.com/gorilla/mux v1.8.1 // indirect
-	github.com/mattn/go-sqlite3 v1.14.32 // indirect
+	github.com/mattn/go-isatty v0.0.20 // indirect
+	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/rs/xid v1.6.0 // indirect
 	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
 	github.com/syifan/goseth v0.1.2 // indirect
@@ -21,6 +25,10 @@ require (
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	go.uber.org/mock v0.6.0 // indirect
 	golang.org/x/sys v0.35.0 // indirect
+	modernc.org/libc v1.37.6 // indirect
+	modernc.org/mathutil v1.6.0 // indirect
+	modernc.org/memory v1.7.2 // indirect
+	modernc.org/sqlite v1.28.0 // indirect
 )
 
 // replace github.com/sarchlab/akita/v4 => ../akita

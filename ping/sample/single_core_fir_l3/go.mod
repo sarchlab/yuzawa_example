@@ -1,4 +1,4 @@
-module single_core
+module single_core_fir_l3
 
 go 1.25
 
@@ -24,8 +24,4 @@ require (
 	golang.org/x/sys v0.35.0 // indirect
 )
 
-replace (
-	github.com/sarchlab/akita/v4 => /Users/sabilaaljannat/akita
-	github.com/sarchlab/mgpusim/v4 => /Users/sabilaaljannat/mgpusim
-	github.com/sarchlab/yuzawa_example => /Users/sabilaaljannat/yuzawa_example
-)
+replace github.com/sarchlab/yuzawa_example => ../../..

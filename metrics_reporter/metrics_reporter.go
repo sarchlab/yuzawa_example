@@ -1,6 +1,7 @@
 package metrics_reporter
 
 import (
+	"os"
 	"sort"
 	"strings"
 	"sync"
@@ -96,17 +97,18 @@ type reporter struct {
 }
 
 func NewReporter(s *simulation.Simulation) *reporter {
+	diagnostics := os.Getenv("METRICS_DIAGNOSTICS") == "1" || os.Getenv("METRICS_DIAGNOSTICS") == "true"
 	r := &reporter{
 		dataRecorder: s.GetDataRecorder(),
-		// Enable all metrics by default for comprehensive reporting
-		ReportInstCount:            true,
-		ReportCacheLatency:         true,
-		ReportCacheHitRate:         true,
-		ReportTLBHitRate:           true,
-		ReportRDMATransactionCount: true,
-		ReportDRAMTransactionCount: true,
-		ReportSIMDBusyTime:         true,
-		ReportCPIStack:             true,
+		// Disable expensive per-instruction tracers by default; only kernel_time is needed.
+		ReportInstCount:            false,
+		ReportCacheLatency:         false,
+		ReportCacheHitRate:         diagnostics,
+		ReportTLBHitRate:           diagnostics,
+		ReportRDMATransactionCount: false,
+		ReportDRAMTransactionCount: false,
+		ReportSIMDBusyTime:         false,
+		ReportCPIStack:             diagnostics,
 	}
 
 	r.injectTracers(s)
@@ -366,6 +368,16 @@ func (r *reporter) Report() {
 	r.reportTLBHitRate()
 	r.reportRDMATransactionCount()
 	r.reportDRAMTransactionCount()
+
+	r.dataRecorder.InsertData(
+		tableName,
+		metric{
+			Location: "simulation",
+			What:     "metrics_reported",
+			Value:    1,
+			Unit:     "count",
+		},
+	)
 }
 
 func (r *reporter) reportKernelTime() {

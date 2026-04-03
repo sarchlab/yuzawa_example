@@ -1,9 +1,11 @@
 package nw
 
 import (
+	"fmt"
+
 	"github.com/sarchlab/akita/v4/mem/mem"
-	"github.com/sarchlab/akita/v4/simulation"
 	mgpusimnw "github.com/sarchlab/mgpusim/v4/amd/benchmarks/rodinia/nw"
+	"github.com/sarchlab/akita/v4/simulation"
 	"github.com/sarchlab/mgpusim/v4/amd/driver"
 	"github.com/sarchlab/mgpusim/v4/amd/timing/cp"
 )
@@ -54,8 +56,21 @@ func (b *Builder) Build(name string) *Benchmark {
 	}
 	commandProcessor := cpComp.(*cp.CommandProcessor)
 
+	cuCount := 0
+	for i := 0; ; i++ {
+		cuName := fmt.Sprintf("CU[%d]", i)
+		comp := b.sim.GetComponentByName(cuName)
+		if comp == nil || comp.Name() != cuName {
+			break
+		}
+		cuCount++
+	}
+	if cuCount == 0 {
+		cuCount = 1
+	}
+
 	d.RegisterGPU(commandProcessor.GetPortByName("ToDriver"), driver.DeviceProperties{
-		CUCount:  1,
+		CUCount:  cuCount,
 		DRAMSize: 4 * mem.GB,
 	})
 

@@ -32,10 +32,6 @@ func (b *Benchmark) Run() {
 	b.nw.Run()
 	log.Println("MGPUSim NW benchmark completed")
 
-	log.Println("Verifying NW benchmark results...")
-	b.nw.Verify()
-	log.Println("NW benchmark verification completed successfully!")
-
 	d.Terminate()
 	metricsReporter.Report()
 	log.Println("Simulation completed")

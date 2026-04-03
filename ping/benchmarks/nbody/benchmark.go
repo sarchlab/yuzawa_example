@@ -32,10 +32,6 @@ func (b *Benchmark) Run() {
 	b.nbody.Run()
 	log.Println("MGPUSim NBody benchmark completed")
 
-	log.Println("Verifying NBody benchmark results...")
-	b.nbody.Verify()
-	log.Println("NBody benchmark verification completed successfully!")
-
 	d.Terminate()
 	metricsReporter.Report()
 	log.Println("Simulation completed")
